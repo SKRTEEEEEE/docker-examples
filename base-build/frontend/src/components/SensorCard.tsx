@@ -5,9 +5,10 @@ interface SensorCardProps {
   sensor: Sensor;
   onUpdate: (id: string, data: Partial<CreateSensorDto>) => void;
   onDelete: (id: string) => void;
+  onViewHistory: (sensor: Sensor) => void;
 }
 
-export default function SensorCard({ sensor, onUpdate, onDelete }: SensorCardProps) {
+export default function SensorCard({ sensor, onUpdate, onDelete, onViewHistory }: SensorCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     name: sensor.name,
@@ -123,6 +124,13 @@ export default function SensorCard({ sensor, onUpdate, onDelete }: SensorCardPro
           </>
         )}
       </div>
+
+      <button className="view-history-btn" onClick={(e) => {
+        e.stopPropagation();
+        onViewHistory(sensor);
+      }}>
+        📊 View History
+      </button>
     </div>
   );
 }

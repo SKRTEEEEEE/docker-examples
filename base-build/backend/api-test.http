@@ -99,3 +99,40 @@ Content-Type: application/json
 
 ### Delete sensor
 DELETE http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+
+###
+### SENSOR HISTORY ENDPOINTS
+###
+
+### Get sensor history (all readings up to limit)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE
+
+### Get sensor history with date range
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE?startDate=2024-01-01&endDate=2024-12-31
+
+### Get sensor history with limit
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE?limit=100
+
+### Get recent sensor history (last 1 hour)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=1
+
+### Get recent sensor history (last 24 hours)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=24
+
+### Get recent sensor history (last 7 days)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=168
+
+### Get recent sensor history (last 30 days)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=720
+
+### Get sensor history statistics
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/stats
+
+### Get sensor history statistics with date range
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/stats?startDate=2024-01-01&endDate=2024-12-31
+
+### Delete old readings (older than 30 days)
+DELETE http://localhost:3001/api/history/cleanup?days=30
+
+### Delete old readings (older than 7 days)
+DELETE http://localhost:3001/api/history/cleanup?days=7

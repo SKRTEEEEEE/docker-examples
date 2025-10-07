@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 import { sensorService, Sensor, CreateSensorDto } from '@/services/sensorService';
 import SensorCard from '@/components/SensorCard';
 import SensorForm from '@/components/SensorForm';
+import SensorHistoryModal from '@/components/SensorHistoryModal';
 
 export default function Home() {
   const [sensors, setSensors] = useState<Sensor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
 
   const fetchSensors = async () => {
     try {
@@ -26,6 +28,8 @@ export default function Home() {
 
   useEffect(() => {
     fetchSensors();
+    const interval = setInterval(fetchSensors, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleAddSensor = async (sensorData: CreateSensorDto) => {
@@ -88,9 +92,17 @@ export default function Home() {
               sensor={sensor}
               onUpdate={handleUpdateSensor}
               onDelete={handleDeleteSensor}
+              onViewHistory={setSelectedSensor}
             />
           ))}
         </div>
+      )}
+
+      {selectedSensor && (
+        <SensorHistoryModal
+          sensor={selectedSensor}
+          onClose={() => setSelectedSensor(null)}
+        />
       )}
     </div>
   );
