@@ -1,6 +1,6 @@
 
 
-### **Tema:** Introducción a Docker y Comandos Básicos.
+### [**Tema:** Introducción a Docker y Comandos Básicos.](./1-intro/README.md)
 * **Conceptos Clave:** 
   * Instalación, docker-hub, conceptos
   * **`docker run <imagen>`** (ejecución simple), `docker ps`, `docker logs`.
@@ -12,7 +12,7 @@
 
 
 
-### **Tema:** Directivas Esenciales del **Dockerfile**.
+### [**Tema:** Directivas Esenciales del **Dockerfile**.](./2-dockerfile/frontend.md)
 * **Conceptos Clave:** 
   * **`FROM`**, **`RUN`**, **`CMD`**, **`WORKDIR`**.
   * Como generar dockerfile automáticos
@@ -21,7 +21,7 @@
 * **Ejercicio Práctico:** Crear un Dockerfile para una app simple (ej. Node.js o Python) e introducir el comando **`docker build -t`** para generar la primera imagen personalizada.
 
 
-### **Tema:** Profundizando en **`docker build`** y **`docker run`** con *flags* esenciales.
+### [**Tema:** Profundizando en **`docker build`** y **`docker run`** con *flags* esenciales.](./2-dockerfile/backend.md)
 * **Conceptos Clave:**
     * **`docker build`** Flags: (`--build-arg`, `.dockerignore`).
     * **`docker run`** Flags: (`-p`, `-d`, `--name`, `--rm`).
@@ -35,7 +35,7 @@
 ### **Tema:** Definiendo Servicios con **`compose.yml`**.
 * **Conceptos Clave:** 
   * Estructura del `compose.yml` (`version`, `services`), uso de la directiva `build` (en lugar de `image`), `ports`. Comandos **`docker compose up`** y **`down`**.
-  * 
+  * Para que sirve `.dockerignore` y como usarlo correctamente
 
 
 * **Ejercicio Práctico:** Crear un `compose.yml` que reemplace el comando `docker run` del Módulo 3, levantando la aplicación con un solo comando de Compose.
