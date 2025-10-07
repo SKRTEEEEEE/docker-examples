@@ -1,6 +1,7 @@
 import mqtt from 'mqtt';
 import Sensor from '../models/Sensor';
 import SensorReading from '../models/SensorReading';
+import { sensorEvents } from './eventEmitter';
 
 const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://localhost:1883';
 
@@ -51,6 +52,15 @@ export const connectMQTT = () => {
         });
         await reading.save();
         console.log(`📊 Saved historical reading for ${sensorId}`);
+
+        sensorEvents.emitSensorUpdate({
+          sensorId: String(sensor._id),
+          name: sensor.name,
+          type: sensor.type,
+          value: value,
+          unit: unit,
+          timestamp: new Date(timestamp),
+        });
       } else {
         console.log(`⚠️ Sensor ${sensorId} not found in database. Creating new sensor...`);
         
@@ -77,6 +87,15 @@ export const connectMQTT = () => {
         });
         await reading.save();
         console.log(`📊 Saved historical reading for ${sensorId}`);
+
+        sensorEvents.emitSensorUpdate({
+          sensorId: String(newSensor._id),
+          name: newSensor.name,
+          type: newSensor.type,
+          value: value,
+          unit: unit,
+          timestamp: new Date(timestamp),
+        });
       }
     } catch (error) {
       console.error('❌ Error processing MQTT message:', error);

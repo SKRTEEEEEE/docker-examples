@@ -12,30 +12,57 @@ export default function Home() {
   const [error, setError] = useState('');
   const [selectedSensor, setSelectedSensor] = useState<Sensor | null>(null);
 
-  const fetchSensors = async () => {
-    try {
-      setLoading(true);
-      const data = await sensorService.getAll();
-      setSensors(data);
-      setError('');
-    } catch (err) {
-      setError('Failed to fetch sensors. Make sure the backend is running.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchSensors();
-    const interval = setInterval(fetchSensors, 5000);
-    return () => clearInterval(interval);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const eventSource = new EventSource(`${API_URL}/api/stream/sensors`);
+
+    eventSource.onopen = () => {
+      console.log('✅ SSE connection established');
+      setError('');
+    };
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'connected') {
+          console.log('📡 Connected to sensor stream');
+        } else if (data.type === 'initial') {
+          setSensors(data.sensors);
+          setLoading(false);
+        } else if (data.type === 'update') {
+          setSensors(prev => {
+            const index = prev.findIndex(s => s._id === data.sensor._id);
+            if (index !== -1) {
+              const updated = [...prev];
+              updated[index] = data.sensor;
+              return updated;
+            } else {
+              return [...prev, data.sensor];
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Error parsing SSE message:', err);
+      }
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('❌ SSE connection error:', err);
+      setError('Lost connection to server. Reconnecting...');
+      setLoading(false);
+    };
+
+    return () => {
+      console.log('🛑 Closing SSE connection');
+      eventSource.close();
+    };
   }, []);
 
   const handleAddSensor = async (sensorData: CreateSensorDto) => {
     try {
-      await sensorService.create(sensorData);
-      await fetchSensors();
+      const newSensor = await sensorService.create(sensorData);
+      setSensors(prev => [newSensor, ...prev]);
       setError('');
     } catch (err) {
       setError('Failed to create sensor');
@@ -45,8 +72,8 @@ export default function Home() {
 
   const handleUpdateSensor = async (id: string, sensorData: Partial<CreateSensorDto>) => {
     try {
-      await sensorService.update(id, sensorData);
-      await fetchSensors();
+      const updatedSensor = await sensorService.update(id, sensorData);
+      setSensors(prev => prev.map(s => s._id === id ? updatedSensor : s));
       setError('');
     } catch (err) {
       setError('Failed to update sensor');
@@ -58,7 +85,7 @@ export default function Home() {
     if (confirm('Are you sure you want to delete this sensor?')) {
       try {
         await sensorService.delete(id);
-        await fetchSensors();
+        setSensors(prev => prev.filter(s => s._id !== id));
         setError('');
       } catch (err) {
         setError('Failed to delete sensor');

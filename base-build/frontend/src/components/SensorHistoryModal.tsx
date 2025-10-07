@@ -27,9 +27,25 @@ export default function SensorHistoryModal({ sensor, onClose }: SensorHistoryMod
 
   useEffect(() => {
     fetchHistory();
-    const interval = setInterval(fetchHistory, 10000);
-    return () => clearInterval(interval);
-  }, [timeRange]);
+    
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const eventSource = new EventSource(`${API_URL}/api/stream/sensors`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'update' && data.sensor._id === sensor._id) {
+          fetchHistory();
+        }
+      } catch (err) {
+        console.error('Error parsing SSE in modal:', err);
+      }
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [timeRange, sensor._id]);
 
   const fetchHistory = async () => {
     try {

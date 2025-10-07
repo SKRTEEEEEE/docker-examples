@@ -5,6 +5,7 @@ import { connectDB } from './config/database';
 import { connectMQTT, disconnectMQTT } from './services/mqttService';
 import sensorRoutes from './routes/sensor.routes';
 import historyRoutes from './routes/history.routes';
+import sseRoutes from './routes/sse.routes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ connectMQTT();
 
 app.use('/api/sensors', sensorRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/stream', sseRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Sensor API is running' });
