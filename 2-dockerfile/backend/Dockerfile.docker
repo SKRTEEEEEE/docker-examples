@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+
+ARG NODE_VERSION=22.13.1
+
+###########################
+# Build Stage
+###########################
+FROM node:${NODE_VERSION}-slim AS builder
+WORKDIR /usr/src/app
+
+# Install dependencies (npm ci for deterministic builds)
+COPY --link package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
+
+# Copy source files
+COPY --link tsconfig.json ./
+COPY --link src ./src
+
+# Build the TypeScript app
+RUN npm run build
+
+###########################
+# Production Stage
+###########################
+FROM node:${NODE_VERSION}-slim AS final
+WORKDIR /usr/src/app
+
+# Create a non-root user
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+
+# Copy built app and production dependencies only
+COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /usr/src/app/package.json ./
+COPY --from=builder /usr/src/app/package-lock.json ./
+COPY --from=builder /usr/src/app/node_modules ./node_modules
+
+ENV NODE_ENV=production
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
+USER appuser
+
+EXPOSE 5000
+
+CMD ["npm", "start"]
