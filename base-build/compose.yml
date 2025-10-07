@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: sensor-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: sensors_db
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - sensor-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sensor-backend
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/sensors_db?authSource=admin
+    depends_on:
+      - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    networks:
+      - sensor-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sensor-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - sensor-network
+
+volumes:
+  mongo-data:
+
+networks:
+  sensor-network:
+    driver: bridge

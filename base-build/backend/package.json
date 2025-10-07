@@ -1,0 +1,28 @@
+{
+  "name": "sensor-backend",
+  "version": "1.0.0",
+  "description": "Sensor management backend API",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["sensors", "api", "nodejs", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.20",
+    "@types/node": "^20.9.0",
+    "@types/cors": "^2.8.15",
+    "typescript": "^5.2.2",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.1"
+  }
+}

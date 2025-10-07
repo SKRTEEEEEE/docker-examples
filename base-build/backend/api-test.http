@@ -1,0 +1,60 @@
+### Health Check
+GET http://localhost:3001/health
+
+### Get all sensors
+GET http://localhost:3001/api/sensors
+
+### Get sensor by ID
+GET http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+
+### Create a new sensor - Temperature
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "Temperature Sensor 1",
+  "type": "temperature",
+  "location": "Room A",
+  "value": 22.5,
+  "unit": "°C",
+  "status": "active"
+}
+
+### Create a new sensor - Humidity
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "Humidity Sensor 1",
+  "type": "humidity",
+  "location": "Room B",
+  "value": 65,
+  "unit": "%",
+  "status": "active"
+}
+
+### Create a new sensor - Pressure
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "Pressure Sensor 1",
+  "type": "pressure",
+  "location": "Outside",
+  "value": 1013.25,
+  "unit": "hPa",
+  "status": "active"
+}
+
+### Update sensor
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "Temperature Sensor 1 - Updated",
+  "value": 23.8,
+  "status": "maintenance"
+}
+
+### Delete sensor
+DELETE http://localhost:3001/api/sensors/68e4f83a5373758c50121ff3
