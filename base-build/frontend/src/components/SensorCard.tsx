@@ -10,7 +10,8 @@ interface SensorCardProps {
 export default function SensorCard({ sensor, onUpdate, onDelete }: SensorCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    value: sensor.value,
+    name: sensor.name,
+    location: sensor.location,
     status: sensor.status,
   });
 
@@ -47,16 +48,32 @@ export default function SensorCard({ sensor, onUpdate, onDelete }: SensorCardPro
         </div>
       </div>
 
-      {isEditing ? (
+      <div className="sensor-value">
+        {sensor.value} {sensor.unit}
+        <div style={{ fontSize: '0.75rem', color: '#999', marginTop: '5px' }}>
+          📡 Updated via MQTT
+        </div>
+      </div>
+
+      {isEditing && (
         <div style={{ marginBottom: '15px' }}>
           <div className="form-group" style={{ marginBottom: '10px' }}>
-            <label>Value:</label>
+            <label>Sensor Name:</label>
             <input
-              type="number"
-              step="0.01"
-              value={editData.value}
+              type="text"
+              value={editData.name}
               onChange={(e) =>
-                setEditData({ ...editData, value: parseFloat(e.target.value) })
+                setEditData({ ...editData, name: e.target.value })
+              }
+            />
+          </div>
+          <div className="form-group" style={{ marginBottom: '10px' }}>
+            <label>Location:</label>
+            <input
+              type="text"
+              value={editData.location}
+              onChange={(e) =>
+                setEditData({ ...editData, location: e.target.value })
               }
             />
           </div>
@@ -76,10 +93,6 @@ export default function SensorCard({ sensor, onUpdate, onDelete }: SensorCardPro
               <option value="maintenance">Maintenance</option>
             </select>
           </div>
-        </div>
-      ) : (
-        <div className="sensor-value">
-          {sensor.value} {sensor.unit}
         </div>
       )}
 

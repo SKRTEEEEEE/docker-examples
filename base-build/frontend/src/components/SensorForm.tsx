@@ -11,7 +11,7 @@ export default function SensorForm({ onSubmit }: SensorFormProps) {
     type: 'temperature',
     location: '',
     value: 0,
-    unit: '°C',
+    unit: '',
     status: 'active',
   });
 
@@ -23,45 +23,25 @@ export default function SensorForm({ onSubmit }: SensorFormProps) {
       type: 'temperature',
       location: '',
       value: 0,
-      unit: '°C',
+      unit: '',
       status: 'active',
     });
   };
 
-  const handleTypeChange = (type: string) => {
-    let unit = '';
-    switch (type) {
-      case 'temperature':
-        unit = '°C';
-        break;
-      case 'humidity':
-        unit = '%';
-        break;
-      case 'pressure':
-        unit = 'hPa';
-        break;
-      case 'light':
-        unit = 'lux';
-        break;
-      case 'motion':
-        unit = 'detected';
-        break;
-      default:
-        unit = '';
-    }
-    setFormData({ ...formData, type, unit });
-  };
-
   return (
     <form className="add-sensor-form" onSubmit={handleSubmit}>
-      <h2>Add New Sensor</h2>
+      <h2>Register New Sensor</h2>
+      <p style={{ color: '#666', marginBottom: '20px', fontSize: '0.95rem' }}>
+        📡 Sensor values will be automatically updated via MQTT from Raspberry Pi devices
+      </p>
       <div className="form-grid">
         <div className="form-group">
-          <label>Sensor Name *</label>
+          <label>Sensor Name * (must match Pi device ID)</label>
           <input
             type="text"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g., temp-sensor-01"
             required
           />
         </div>
@@ -70,7 +50,7 @@ export default function SensorForm({ onSubmit }: SensorFormProps) {
           <label>Type *</label>
           <select
             value={formData.type}
-            onChange={(e) => handleTypeChange(e.target.value)}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             required
           >
             <option value="temperature">Temperature</option>
@@ -90,29 +70,7 @@ export default function SensorForm({ onSubmit }: SensorFormProps) {
             onChange={(e) =>
               setFormData({ ...formData, location: e.target.value })
             }
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Value *</label>
-          <input
-            type="number"
-            step="0.01"
-            value={formData.value}
-            onChange={(e) =>
-              setFormData({ ...formData, value: parseFloat(e.target.value) })
-            }
-            required
-          />
-        </div>
-
-        <div className="form-group">
-          <label>Unit *</label>
-          <input
-            type="text"
-            value={formData.unit}
-            onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
+            placeholder="e.g., Living Room"
             required
           />
         </div>
@@ -137,7 +95,7 @@ export default function SensorForm({ onSubmit }: SensorFormProps) {
       </div>
 
       <button type="submit" className="btn btn-primary">
-        Add Sensor
+        Register Sensor
       </button>
     </form>
   );

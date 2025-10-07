@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { connectDB } from './config/database';
+import { connectMQTT, disconnectMQTT } from './services/mqttService';
 import sensorRoutes from './routes/sensor.routes';
 
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 connectDB();
+connectMQTT();
 
 app.use('/api/sensors', sensorRoutes);
 
@@ -22,4 +24,10 @@ app.get('/health', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+});
+
+process.on('SIGINT', () => {
+  console.log('\n🛑 Shutting down backend...');
+  disconnectMQTT();
+  process.exit(0);
 });

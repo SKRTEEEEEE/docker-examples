@@ -16,6 +16,20 @@ services:
     networks:
       - sensor-network
 
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: sensor-mqtt
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    networks:
+      - sensor-network
+
   backend:
     build:
       context: ./backend
@@ -28,10 +42,29 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/sensors_db?authSource=admin
+      - MQTT_BROKER=mqtt://mosquitto:1883
     depends_on:
       - mongodb
+      - mosquitto
     volumes:
       - ./backend:/app
+      - /app/node_modules
+    networks:
+      - sensor-network
+
+  pi-simulator:
+    build:
+      context: ./pi-simulator
+      dockerfile: Dockerfile
+    container_name: sensor-pi-simulator
+    restart: always
+    environment:
+      - MQTT_BROKER=mqtt://mosquitto:1883
+      - UPDATE_INTERVAL=120000
+    depends_on:
+      - mosquitto
+    volumes:
+      - ./pi-simulator:/app
       - /app/node_modules
     networks:
       - sensor-network

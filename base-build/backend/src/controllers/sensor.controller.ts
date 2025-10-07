@@ -34,9 +34,17 @@ export const createSensor = async (req: Request, res: Response) => {
 
 export const updateSensor = async (req: Request, res: Response) => {
   try {
+    const { value, unit, ...updateData } = req.body;
+    
+    if (value !== undefined || unit !== undefined) {
+      return res.status(400).json({ 
+        message: 'Sensor values can only be updated via MQTT from Raspberry Pi devices' 
+      });
+    }
+
     const sensor = await Sensor.findByIdAndUpdate(
       req.params.id,
-      { ...req.body, lastUpdated: Date.now() },
+      { ...updateData, lastUpdated: Date.now() },
       { new: true, runValidators: true }
     );
     if (!sensor) {

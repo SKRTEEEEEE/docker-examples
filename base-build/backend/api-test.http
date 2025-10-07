@@ -1,60 +1,101 @@
 ### Health Check
 GET http://localhost:3001/health
 
-### Get all sensors
+### Get all sensors (with real-time values from MQTT)
 GET http://localhost:3001/api/sensors
 
 ### Get sensor by ID
 GET http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
 
-### Create a new sensor - Temperature
+###
+### REGISTER NEW SENSORS
+### Note: value and unit are set to 0/empty - they will be updated via MQTT
+###
+
+### Register sensor - Must match Pi simulator ID
 POST http://localhost:3001/api/sensors
 Content-Type: application/json
 
 {
-  "name": "Temperature Sensor 1",
+  "name": "temp-sensor-01",
   "type": "temperature",
-  "location": "Room A",
-  "value": 22.5,
-  "unit": "°C",
+  "location": "Living Room",
+  "value": 0,
+  "unit": "",
   "status": "active"
 }
 
-### Create a new sensor - Humidity
+### Register sensor - Humidity
 POST http://localhost:3001/api/sensors
 Content-Type: application/json
 
 {
-  "name": "Humidity Sensor 1",
+  "name": "humidity-sensor-01",
   "type": "humidity",
-  "location": "Room B",
-  "value": 65,
-  "unit": "%",
+  "location": "Bedroom",
+  "value": 0,
+  "unit": "",
   "status": "active"
 }
 
-### Create a new sensor - Pressure
+### Register sensor - Pressure
 POST http://localhost:3001/api/sensors
 Content-Type: application/json
 
 {
-  "name": "Pressure Sensor 1",
+  "name": "pressure-sensor-01",
   "type": "pressure",
   "location": "Outside",
-  "value": 1013.25,
-  "unit": "hPa",
+  "value": 0,
+  "unit": "",
   "status": "active"
 }
 
-### Update sensor
+### Register sensor - Light
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "light-sensor-01",
+  "type": "light",
+  "location": "Office",
+  "value": 0,
+  "unit": "",
+  "status": "active"
+}
+
+###
+### UPDATE SENSOR METADATA
+### Note: Can only update name, location, and status
+### Attempting to update value or unit will return 400 error
+###
+
+### Update sensor metadata (name, location, status only)
 PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
 Content-Type: application/json
 
 {
-  "name": "Temperature Sensor 1 - Updated",
-  "value": 23.8,
+  "name": "Temperature Sensor - Main Floor",
+  "location": "Kitchen",
+  "status": "active"
+}
+
+### Try to update value (will fail with 400 error)
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
+  "value": 99.9,
+  "status": "active"
+}
+
+### Set sensor to maintenance mode
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
   "status": "maintenance"
 }
 
 ### Delete sensor
-DELETE http://localhost:3001/api/sensors/68e4f83a5373758c50121ff3
+DELETE http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
