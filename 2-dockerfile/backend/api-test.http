@@ -1,0 +1,46 @@
+### Test ruta básica
+GET http://localhost:5000/
+Accept: application/json
+
+###
+
+### Crear una nota
+POST http://localhost:5000/note
+Content-Type: application/json
+
+{
+  "title": "Mi primera nota",
+  "desc": "Descripción de la nota",
+  "priv": false,
+  "deleted": false
+}
+
+###
+
+### Obtener todas las notas
+GET http://localhost:5000/note
+Accept: application/json
+
+###
+
+### Modificar una nota (reemplaza {id} por el id real)
+PUT http://localhost:5000/note
+Content-Type: application/json
+
+{
+  "id": "{id}",
+  "title": "Nota modificada",
+  "desc": "Descripción actualizada",
+  "priv": true,
+  "deleted": false
+}
+
+###
+
+### Eliminar una nota (reemplaza {id} por el id real)
+DELETE http://localhost:5000/note
+Content-Type: application/json
+
+{
+  "id": "{id}"
+}
