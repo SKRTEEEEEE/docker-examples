@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Primera App con Docker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐳 Bienvenido a Docker</h1>
+            <p class="subtitle">Ejercicio de Introducción a Docker</p>
+        </header>
+
+        <main>
+            <section class="info-card">
+                <h2>Información del Contenedor</h2>
+                <p>Esta página está siendo servida desde un contenedor Nginx.</p>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-label">Puerto:</span>
+                        <span class="stat-value">8080 → 80</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Imagen:</span>
+                        <span class="stat-value">nginx:latest</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="interactive-section">
+                <h2>Contador Interactivo</h2>
+                <div class="counter-container">
+                    <button id="decrementBtn" class="btn btn-danger">-</button>
+                    <span id="counter" class="counter-display">0</span>
+                    <button id="incrementBtn" class="btn btn-success">+</button>
+                </div>
+                <button id="resetBtn" class="btn btn-secondary">Resetear</button>
+            </section>
+
+            <section class="commands-section">
+                <h2>📋 Comandos útiles</h2>
+                <div class="command-grid">
+                    <div class="command-card">
+                        <code>docker ps</code>
+                        <p>Ver contenedores activos</p>
+                    </div>
+                    <div class="command-card">
+                        <code>docker logs mi-web</code>
+                        <p>Ver logs del contenedor</p>
+                    </div>
+                    <div class="command-card">
+                        <code>docker exec -it mi-web bash</code>
+                        <p>Acceder al contenedor</p>
+                    </div>
+                    <div class="command-card">
+                        <code>docker stop mi-web</code>
+                        <p>Detener el contenedor</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Hecho con ❤️ para aprender Docker</p>
+            <p class="timestamp">Cargado: <span id="timestamp"></span></p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
