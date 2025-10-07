@@ -1,0 +1,237 @@
+###
+### SENSOR MANAGEMENT COMPLETE WORKFLOW
+### This file demonstrates the complete lifecycle of sensor management
+### Follow the steps in order to see how the system works
+###
+
+### STEP 1: Health Check - Verify the backend is running
+GET http://localhost:3001/health
+
+###
+### STEP 2: Create new sensors
+### Register sensors that will receive data from Raspberry Pi via MQTT
+###
+
+### 2.1 - Create Temperature Sensor
+# @name createTempSensor
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "temp-sensor-01",
+  "type": "temperature",
+  "location": "Living Room",
+  "value": 0,
+  "unit": "",
+  "status": "active"
+}
+
+###
+
+### 2.2 - Create Humidity Sensor
+# @name createHumiditySensor
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "humidity-sensor-01",
+  "type": "humidity",
+  "location": "Bedroom",
+  "value": 0,
+  "unit": "",
+  "status": "active"
+}
+
+###
+
+### 2.3 - Create Pressure Sensor
+# @name createPressureSensor
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "pressure-sensor-01",
+  "type": "pressure",
+  "location": "Outside",
+  "value": 0,
+  "unit": "",
+  "status": "active"
+}
+
+###
+
+### 2.4 - Create Light Sensor
+# @name createLightSensor
+POST http://localhost:3001/api/sensors
+Content-Type: application/json
+
+{
+  "name": "light-sensor-01",
+  "type": "light",
+  "location": "Office",
+  "value": 0,
+  "unit": "",
+  "status": "active"
+}
+
+###
+### STEP 3: List all sensors
+### After creating sensors, verify they're in the database
+###
+
+GET http://localhost:3001/api/sensors
+
+###
+### STEP 4: Wait for MQTT data
+### The Pi simulator will automatically start sending data every 2 minutes
+### Watch the backend logs: docker logs -f sensor-backend
+### You should see messages like:
+### 📥 Received message on sensors/temperature/temp-sensor-01
+### ✅ Updated sensor temp-sensor-01: 22.5°C
+### 📊 Saved historical reading for temp-sensor-01
+###
+
+###
+### STEP 5: Verify sensor values are updated
+### After MQTT data arrives, check that values are populated
+###
+
+GET http://localhost:3001/api/sensors
+
+###
+### STEP 6: Get specific sensor by ID
+### Replace YOUR_SENSOR_ID_HERE with an actual ID from step 5 response
+###
+
+GET http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+
+###
+### STEP 7: Update sensor metadata
+### You can update name, location, and status (but NOT value or unit)
+###
+
+### 7.1 - Update location and name
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
+  "name": "Temperature Sensor - Main Floor",
+  "location": "Kitchen"
+}
+
+###
+
+### 7.2 - Set sensor to maintenance mode
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
+  "status": "maintenance"
+}
+
+###
+
+### 7.3 - Try to update value (will FAIL with 400 error)
+### This demonstrates that values can only come from MQTT
+PUT http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+Content-Type: application/json
+
+{
+  "value": 99.9,
+  "unit": "°C"
+}
+
+###
+### STEP 8: View historical data
+### After waiting a few minutes for multiple MQTT readings
+###
+
+### 8.1 - Get all historical readings for a sensor
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE
+
+###
+
+### 8.2 - Get recent history (last 1 hour)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=1
+
+###
+
+### 8.3 - Get recent history (last 24 hours)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=24
+
+###
+
+### 8.4 - Get recent history (last 7 days)
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/recent?hours=168
+
+###
+
+### 8.5 - Get statistics for sensor readings
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/stats
+
+###
+
+### 8.6 - Get statistics with date range
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE/stats?startDate=2024-01-01&endDate=2024-12-31
+
+###
+
+### 8.7 - Get limited number of readings
+GET http://localhost:3001/api/history/YOUR_SENSOR_ID_HERE?limit=50
+
+###
+### STEP 9: Real-time updates via Server-Sent Events
+### Open this URL in a browser or use a tool like curl
+### It will stream real-time sensor updates as they arrive
+###
+
+### 9.1 - Connect to SSE stream (use browser or curl)
+# Open in browser: http://localhost:3001/api/stream/sensors
+# Or use curl:
+# curl -N http://localhost:3001/api/stream/sensors
+
+###
+### STEP 10: Cleanup operations
+###
+
+### 10.1 - Delete old readings (older than 7 days)
+DELETE http://localhost:3001/api/history/cleanup?days=7
+
+###
+
+### 10.2 - Delete old readings (older than 30 days)
+DELETE http://localhost:3001/api/history/cleanup?days=30
+
+###
+### STEP 11: Delete a sensor
+### This will also remove all associated historical readings
+###
+
+DELETE http://localhost:3001/api/sensors/YOUR_SENSOR_ID_HERE
+
+###
+### STEP 12: Verify deletion
+### Check that the sensor is no longer in the list
+###
+
+GET http://localhost:3001/api/sensors
+
+###
+### END OF WORKFLOW
+###
+### Summary of what you've done:
+### ✅ Created multiple sensors
+### ✅ Verified MQTT data updates
+### ✅ Updated sensor metadata
+### ✅ Viewed historical data and statistics
+### ✅ Tested SSE real-time streaming
+### ✅ Cleaned up old data
+### ✅ Deleted sensors
+###
+### Next Steps:
+### - Open frontend at http://localhost:3000
+### - Click on sensors to view interactive graphs
+### - Watch real-time updates via SSE (no page refresh needed!)
+### - Monitor MQTT messages: docker logs -f sensor-pi-simulator
+### - Monitor backend processing: docker logs -f sensor-backend
+###
