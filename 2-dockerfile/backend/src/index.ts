@@ -12,10 +12,25 @@ const PORT = process.env.PORT || 5000;
 // Middleware para parsear JSON
 app.use(express.json());
 
-
+const allowedOrigins = [
+  'http://localhost:4173',
+  'http://localhost:5173',
+  'http://localhost',
+  'http://127.0.0.1:4173',
+  'http://127.0.0.1:5173'
+];
 
 app.use(cors({
-  origin: "http://localhost:4173"
+  origin: (origin, callback) => {
+    // Permite solicitudes sin origen (Postman, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true); // origen permitido
+    } else {
+      callback(new Error('CORS no permitido para este origen'));
+    }
+  },
 }));
 
 // Conectar a MongoDB

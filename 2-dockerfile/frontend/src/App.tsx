@@ -206,7 +206,7 @@ function App() {
     <div className="relative h-screen overflow-hidden">
       <div className="sm:grid grid-cols-2 h-full">
         <section className="w-full">
-          <h1 className="w-full  text-2xl text-center my-2">To Do List</h1>
+          <h1 className="w-full  text-2xl text-center my-2">📄 To Do List </h1>
           {notes ? (
             <Tab
               notes={notes}

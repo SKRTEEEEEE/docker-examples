@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+# Instalar herramientas de desarrollo (opcional pero útil)
+RUN apk add --no-cache curl
+
+WORKDIR /app
+
+# Copiar manifiestos de dependencias
+COPY package*.json ./
+
+# Instalar TODAS las dependencias (incluyendo devDependencies para nodemon, ts-node, etc.)
+RUN npm install
+
+# NO copiamos el código fuente aquí - se monta con bind mount
+# NO compilamos con npm run build - se hace en caliente
+
+# Puerto de la aplicación
+EXPOSE 5000
+
+# Comando de desarrollo con nodemon para hot-reload
+# Asegúrate de tener "dev": "nodemon --watch src --ext ts --exec ts-node src/index.ts" en package.json
+CMD ["npm", "run", "dev:docker"]
