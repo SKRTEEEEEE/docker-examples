@@ -49,10 +49,12 @@ docker run nginx
 | `-it` | Modo interactivo con terminal | `docker run -it ubuntu bash` |
 | `-e` | Variables de entorno | `docker run -e VARIABLE=valor nginx` |
 
-**Ejemplo completo:**
+**Ejemplo completo linux:**
 ```bash
-docker run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html nginx
+docker run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html:z nginx
 ```
+[**Ejemplo completo bash windows**](#-git-bash-en-windows-problema-de-conversión-de-rutas)
+
 
 ### 2. `docker ps` - Listar contenedores
 
@@ -153,6 +155,24 @@ docker images
 docker rmi nginx
 ```
 
+## 🔧 Linux (native) y SELinux (Fedora/CentOS/RHEL): Problema de conversión de rutas
+
+En Linux normal:
+
+```bash
+docker run -v /home/usuario/proyecto/backend:/usr/src/app ...
+```
+
+Si el host usa **SELinux**, añade `:z` o `:Z` para etiquetado:
+
+* `:z` → etiqueta para uso compartido entre contenedores
+* `:Z` → etiqueta exclusiva
+
+```bash
+docker run -v /ruta/backend:/usr/src/app:Z ...
+```
+
+---
 
 
 
@@ -178,7 +198,7 @@ Esta variable de entorno desactiva la conversión automática de rutas:
 MSYS_NO_PATHCONV=1 docker run -d -p 8080:80 -v "$(pwd)/site:/usr/share/nginx/html" nginx
 ```
 
-**Nota importante:** Las comillas `"$(pwd)/site:/usr/share/nginx/html"` son necesarias si tu ruta contiene espacios.
+**Nota importante:** Las comillas `"$(pwd)/site:/usr/share/nginx/html"` son necesarias.
 
 ### Alternativa: Usar ruta absoluta de Windows
 
@@ -218,9 +238,9 @@ Deberías ver algo como: `Docker version 24.0.x, build xxxxx`
 
 ### Ejecutar el contenedor
 
-**En Linux/macOS/Git Bash:**
+**En Linux:**
 ```bash
-docker run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html nginx
+docker run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html:z nginx
 ```
 
 **En PowerShell (Windows):**
@@ -228,10 +248,6 @@ docker run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html ngin
 docker run -d -p 8080:80 --name mi-web -v ${PWD}/site:/usr/share/nginx/html nginx
 ```
 
-**Con Podman:**
-```bash
-podman run -d -p 8080:80 --name mi-web -v $(pwd)/site:/usr/share/nginx/html nginx
-```
 
 **Explicación de los flags:**
 - `-d`: Ejecuta en modo detached (segundo plano)
@@ -357,6 +373,8 @@ Cuando ejecutas este comando, Docker crea un "puente" entre dos sistemas de arch
 3. **Los cambios son bidireccionales:**
    - Si modificas `index.html` en tu máquina → El cambio se refleja inmediatamente en el contenedor
    - Si el contenedor modifica un archivo → El cambio aparece en tu máquina
+  
+      🔎 La conexión (montajes de enlace o bind mounts) se crea bidireccional por defecto. Puedes configurar que solo se apliquen los cambios de tu maquina a docker, o al reves que solo se apliquen los cambios de tu contenedor a tu local.
 
 ### Ventajas de usar volúmenes
 
@@ -400,26 +418,5 @@ docker ps -a | grep mi-web
 docker rm -f mi-web
 ```
 
-### Los cambios en el código no se reflejan
-**Causa:** Caché del navegador
-
-**Solución:** Recarga con `Ctrl+F5` (o `Cmd+Shift+R` en Mac)
-
-### Error de permisos en Linux
-**Error:** `Permission denied`
-
-**Solución:** Añade tu usuario al grupo docker:
-```bash
-sudo usermod -aG docker $USER
-```
-Cierra sesión y vuelve a iniciar.
-
-### Error en Windows con rutas
-**Error:** Rutas no se montan correctamente
-
-**Solución:** 
-1. Asegúrate de que la unidad está compartida en Docker Desktop (Settings → Resources → File Sharing)
-2. Usa rutas absolutas si es necesario:
-```powershell
-docker run -d -p 8080:80 --name mi-web -v C:\Users\tuusuario\docker-exercise\site:/usr/share/nginx/html nginx
-```
+### [Error en Windows Bash con rutas](#-git-bash-en-windows-problema-de-conversión-de-rutas)
+### [Error en LinuxSE Bash con rutas](#-linux-native-y-selinux-fedoracentosrhel-problema-de-conversión-de-rutas)
