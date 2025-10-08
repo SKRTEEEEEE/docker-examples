@@ -1,6 +1,6 @@
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif">
 
-# Docker Github y IA
+# Docker, Github y IA
 <a href="https://github.com/SKRTEEEEEE/upc">
 <div align="center">
   <img  src="https://github.com/SKRTEEEEEE/upc/blob/main/Pictures/banner_robot.svg"
@@ -32,9 +32,6 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
   
 * **Ejercicio Práctico:** Codear el `Dockerfile` y construir la imagen del backend del Módulo 2 con port forwarding, variables de entorno y ejecutarla en *detach mode* (`-d`) con mapeo de puertos (`-p`), nombre específico (`--name`) y otras flags. Hacer lo mismo con la parte del frontend. Utilizar network para hacer que las imágenes trabajen conjuntamente.
 
-
-
-
 ### [**Tema 3:** Directivas Esenciales del **Dockerfile**.](./2-dockerfile/frontend.md)
 * **Conceptos Clave:** 
   * **`FROM`**, **`RUN`**, **`CMD`**, **`WORKDIR`**.
@@ -43,15 +40,12 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 
 * **Ejercicio Práctico:** Hacer lo mismo que en el ejercicio anterior pero con la imagen del frontend, levantando esta vez la app 'completa' viviendo en una misma network.
 
-
 ### [**Tema 4:** Definiendo Servicios con **`compose.yml`**.](./2-dockerfile/compose.md)
 * **Conceptos Clave:** 
   * Estructura del `compose.yml` (`version`, `services`), uso de la directiva `build` (en lugar de `image`), `ports`. Comandos **`docker compose up`** y **`down`**.
   * Para que sirve `.dockerignore` y como usarlo correctamente
 
-
 * **Ejercicio Práctico:** Crear un `compose.yml` que reemplace el comando `docker run` de los módulos anteriores.
-
 
 ### [**Tema 5:** Redes y Comunicación entre Servicios.](./2-dockerfile/development.md)
 * **Conceptos Clave:** 
@@ -65,13 +59,14 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 #### Ejercicio EXTRA 🥳🥳
 Crear una configuración de `compose` (con sus Dockerfile correspondientes) para producción real con servidor Proxy(nginx)
 
-### **Tema:** Capas, *Caching* y Comandos de Ejecución de Aplicaciones.
+### [**Tema 6:** Capas, *Caching* y Multistage builds.](./3-multistage/README.md)
 * **Conceptos Clave:** 
   * **`AS`**: Optimizando capas (**Multistage builds**).
   * **`COPY`**, **`ADD`**, **`ENTRYPOINT`**, 
   * Uso de link
+  * Otros conceptos claves para multistage i caching
   
-* **Ejercicio Práctico:** Migrar el `Dockerfile` de la aplicación anterior a un *Multistage Build* para separar las herramientas de compilación y reducir significativamente el tamaño de la imagen final.
+* **Ejercicio Práctico:** Crear el `Dockerfile` de la aplicación backend hecha en Rust con un *Multistage Build* para separar las herramientas de compilación y reducir significativamente el tamaño de la imagen final.
 
 ### **Tema:** Variables de Entorno y compose dinámico.
 * **Conceptos Clave:** 
@@ -88,15 +83,14 @@ Crear una configuración de `compose` (con sus Dockerfile correspondientes) para
   * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
   
 * **✏️ Ejercicio Práctico:** IA_APP-models+?deployment? Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
-  
 ### **Tema:** Git/GitHub II 
 * **Conceptos Clave Git/GitHub:** 
   * delete branch remote and local, fork, public-private-template-archive
   * **`tag`:** y release
   * **`merge`, `reset`:** explorar merge con conflicto, `--soft` `--hard` `HEAD`
-* **✏️ Conceptos Clave CI/CD:** 
-  * Main action
-  * Concepto de las action 
+* ** Conceptos Clave CI/CD:** 
+  * 'Main/slow' action
+  * Conceptos de las github action 
   
 * **✏️ Ejercicio Práctico:** IA+GitHub-pair programming Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 ### **Tema:** CI/CD II.
