@@ -155,6 +155,24 @@ docker images
 docker rmi nginx
 ```
 
+## 🔧 Linux (native) y SELinux (Fedora/CentOS/RHEL): Problema de conversión de rutas
+
+En Linux normal:
+
+```bash
+docker run -v /home/usuario/proyecto/backend:/usr/src/app ...
+```
+
+Si el host usa **SELinux**, añade `:z` o `:Z` para etiquetado:
+
+* `:z` → etiqueta para uso compartido entre contenedores
+* `:Z` → etiqueta exclusiva
+
+```bash
+docker run -v /ruta/backend:/usr/src/app:Z ...
+```
+
+---
 
 
 
@@ -355,6 +373,8 @@ Cuando ejecutas este comando, Docker crea un "puente" entre dos sistemas de arch
 3. **Los cambios son bidireccionales:**
    - Si modificas `index.html` en tu máquina → El cambio se refleja inmediatamente en el contenedor
    - Si el contenedor modifica un archivo → El cambio aparece en tu máquina
+  
+      🔎 La conexión (montajes de enlace o bind mounts) se crea bidireccional por defecto. Puedes configurar que solo se apliquen los cambios de tu maquina a docker, o al reves que solo se apliquen los cambios de tu contenedor a tu local.
 
 ### Ventajas de usar volúmenes
 
@@ -398,6 +418,5 @@ docker ps -a | grep mi-web
 docker rm -f mi-web
 ```
 
-
-
 ### [Error en Windows Bash con rutas](#-git-bash-en-windows-problema-de-conversión-de-rutas)
+### [Error en LinuxSE Bash con rutas](#-linux-native-y-selinux-fedoracentosrhel-problema-de-conversión-de-rutas)
