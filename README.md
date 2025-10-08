@@ -11,7 +11,9 @@
 ## Información
 Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teoría y el uso de este, GitHub y la IA.
 
-### [**Tema:** Introducción a Docker y Comandos Básicos.](./1-intro/README.md)
+
+### [**Tema 0:** Primeros pasos y Git/GitHub I.](start.md)
+### [**Tema 1:** Introducción a Docker y Comandos Básicos.](./1-intro/README.md)
 * **Conceptos Clave:** 
   * Instalación, docker-hub, conceptos
   * **`docker run <imagen>`** (ejecución simple), `docker ps`, `docker logs`.
@@ -21,7 +23,7 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 
 * **Ejercicio Práctico:** Ejecutar un contenedor nginx vinculado con un volumen al código html.
 
-### [**Tema:** Profundizando en **`docker build`** y **`docker run`** con *flags* esenciales.](./2-dockerfile/backend.md)
+### [**Tema 2:** Profundizando en **`docker build`** y **`docker run`** con *flags* esenciales.](./2-dockerfile/backend.md)
 * **Conceptos Clave:**
     * **`docker build`** Flags: (`--build-arg`, `.dockerignore`).
     * **`docker run`** Flags: (`-p`, `-d`, `--name`, `--rm`).
@@ -33,16 +35,16 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 
 
 
-### [**Tema:** Directivas Esenciales del **Dockerfile**.](./2-dockerfile/frontend.md)
+### [**Tema 3:** Directivas Esenciales del **Dockerfile**.](./2-dockerfile/frontend.md)
 * **Conceptos Clave:** 
   * **`FROM`**, **`RUN`**, **`CMD`**, **`WORKDIR`**.
   * Como generar dockerfile automáticos
   * Profundizar en volúmenes
 
-* **Ejercicio Práctico:** Hacer lo mismo que en el ejercicio anterior pero con la imagen del frontend.
+* **Ejercicio Práctico:** Hacer lo mismo que en el ejercicio anterior pero con la imagen del frontend, levantando esta vez la app 'completa' viviendo en una misma network.
 
 
-### [**Tema:** Definiendo Servicios con **`compose.yml`**.](./2-dockerfile/compose.md)
+### [**Tema 4:** Definiendo Servicios con **`compose.yml`**.](./2-dockerfile/compose.md)
 * **Conceptos Clave:** 
   * Estructura del `compose.yml` (`version`, `services`), uso de la directiva `build` (en lugar de `image`), `ports`. Comandos **`docker compose up`** y **`down`**.
   * Para que sirve `.dockerignore` y como usarlo correctamente
@@ -51,29 +53,59 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 * **Ejercicio Práctico:** Crear un `compose.yml` que reemplace el comando `docker run` de los módulos anteriores.
 
 
-### **Tema:** Redes y Comunicación entre Servicios.
+### [**Tema 5:** Redes y Comunicación entre Servicios.](./2-dockerfile/development.md)
 * **Conceptos Clave:** 
-  * Directivas **`networks`**, **`depends_on`**, **`volumes`**, **`watch`** (montajes bind para desarrollo).
+  * Directivas **`networks`**, **`depends_on`**, **`watch`**(montajes bind para desarrollo), **`healthcheck`** .
+  * **`volumes`**: anónimos, bind mount, named volumes
   
-* **Ejercicio Práctico:** Crear una aplicación de dos servicios (ej. *Frontend* y *Backend* que se comunican internamente) usando la red por defecto de Compose. Montar el código local usando un volumen *bind* para desarrollo.
-
+* **Ejercicio Práctico:** Crear una aplicación completa de cuatro servicios (Frontend, Backend, MongoDB y Nginx) conectados mediante redes personalizadas de Compose. El Frontend y el Backend usan montajes bind para desarrollo con recarga automática (watch), mientras que MongoDB persiste datos en un volumen con nombre y Nginx actúa como reverse proxy con su configuración montada desde un archivo local.
+  - Tipo: Stack Completo con Watch, Build y Red de Microservicios. 
+  - Objetivo: Practicar montaje bind con watch, múltiples volúmenes y redes personalizadas.
+  
+#### Ejercicio EXTRA 🥳🥳
+Crear una configuración de `compose` (con sus Dockerfile correspondientes) para producción real con servidor Proxy(nginx)
 
 ### **Tema:** Capas, *Caching* y Comandos de Ejecución de Aplicaciones.
 * **Conceptos Clave:** 
-  * **`AS`**
+  * **`AS`**: Optimizando capas (**Multistage builds**).
   * **`COPY`**, **`ADD`**, **`ENTRYPOINT`**, 
-  * Optimizando capas (**Multistage builds**).
   * Uso de link
   
 * **Ejercicio Práctico:** Migrar el `Dockerfile` de la aplicación anterior a un *Multistage Build* para separar las herramientas de compilación y reducir significativamente el tamaño de la imagen final.
 
+### **Tema:** Variables de Entorno y compose dinámico.
+* **Conceptos Clave:** 
+  * Directivas **`environment`**, archivos **`.env`**
+  * **`restart`** policies.
+  * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
+  
+* **✏️ Ejercicio Práctico:** MICROSERVICIOS Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 
-
-
-
-### ✏️ **Tema:** Variables de Entorno y Volúmenes Nombrados.
-* **Conceptos Clave:** Directivas **`environment`**, archivos **`.env`**, **`volumes`** (nombrados), **`restart`** policies.
-* **Ejercicio Práctico:** Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+### **Tema:** CI/CD I.
+* **✏️ Conceptos Clave:** 
+  * Directivas **`environment`**, archivos **`.env`**
+  * **`restart`** policies.
+  * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
+  
+* **✏️ Ejercicio Práctico:** IA_APP-models+?deployment? Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+  
+### **Tema:** Git/GitHub II 
+* **Conceptos Clave Git/GitHub:** 
+  * delete branch remote and local, fork, public-private-template-archive
+  * **`tag`:** y release
+  * **`merge`, `reset`:** explorar merge con conflicto, `--soft` `--hard` `HEAD`
+* **✏️ Conceptos Clave CI/CD:** 
+  * Main action
+  * Concepto de las action 
+  
+* **✏️ Ejercicio Práctico:** IA+GitHub-pair programming Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+### **Tema:** CI/CD II.
+* **✏️ Conceptos Clave:** 
+  * Directivas **`environment`**, archivos **`.env`**
+  * **`restart`** policies.
+  * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
+  
+* **✏️ Ejercicio Práctico:** IIoT-`base-build` Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 ---
 
 

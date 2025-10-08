@@ -71,7 +71,109 @@ networks:
 
 ---
 
-## 2. Orden de Inicio: `depends_on`
+## 2. Healthchecks: Verificación de Estado
+
+### ¿Qué son?
+
+Los **healthchecks** verifican que un contenedor está **funcionando correctamente**, no solo que el proceso está corriendo. Permiten esperas inteligentes con `depends_on` y mejor gestión en producción.
+
+---
+
+### Configuración básica
+
+```yaml
+services:
+  database:
+    image: postgres:15
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+```
+
+| Parámetro | Descripción | Valor por defecto |
+| :-------- | :---------- | :---------------- |
+| **test** | Comando de verificación | - |
+| **interval** | Tiempo entre comprobaciones | 30s |
+| **timeout** | Tiempo máximo de respuesta | 30s |
+| **retries** | Fallos antes de marcar unhealthy | 3 |
+| **start_period** | Tiempo de gracia inicial | 0s |
+
+**Estados**: `starting` (período inicial) → `healthy` (test pasado) → `unhealthy` (fallos excedidos)
+
+---
+
+### Ejemplos por tipo de servicio
+
+```yaml
+# PostgreSQL
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U postgres"]
+  interval: 5s
+  timeout: 3s
+  retries: 5
+
+# MySQL
+healthcheck:
+  test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  interval: 5s
+
+# MongoDB
+healthcheck:
+  test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+  interval: 10s
+
+# Redis
+healthcheck:
+  test: ["CMD", "redis-cli", "ping"]
+  interval: 5s
+
+# API Node.js
+healthcheck:
+  test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+  interval: 10s
+  start_period: 20s
+
+# Nginx
+healthcheck:
+  test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+  interval: 10s
+```
+
+💡 **Formato del comando**: `CMD-SHELL` ejecuta en shell, `CMD` ejecuta directamente (más eficiente)
+
+---
+
+### Verificar estado
+
+```bash
+# Ver estado actual
+docker compose ps
+
+# Inspeccionar detalles
+docker inspect --format='{{json .State.Health}}' <container_id>
+
+# Monitorear en tiempo real
+docker events --filter event=health_status
+```
+
+---
+
+### Mejores prácticas
+
+✅ Incluye siempre `start_period` para servicios lentos  
+✅ Tests rápidos y ligeros (no operaciones pesadas)  
+✅ Crea endpoints dedicados (`/health`) en tus APIs  
+✅ Ajusta `retries` según criticidad: desarrollo 3-5, producción 5-10
+
+❌ Nunca modifiques estado en healthchecks  
+❌ Evita para servicios que inician en <1 segundo
+
+---
+
+## 3. Orden de Inicio: `depends_on`
 
 ### Sintaxis básica
 
@@ -116,7 +218,7 @@ services:
 
 ---
 
-## 3. Volúmenes para Desarrollo
+## 4. Volúmenes para Desarrollo
 
 ### Tipos de volúmenes
 
@@ -163,7 +265,7 @@ volumes:
 
 ---
 
-## 4. Modo Desarrollo: `watch`
+## 5. Modo Desarrollo: `watch`
 
 ### ¿Qué es `watch`?
 
@@ -218,7 +320,7 @@ docker compose up --watch
 
 ---
 
-## 5. Ejemplo Completo: Entorno de Desarrollo
+## 6. Ejemplo Completo: Entorno de Desarrollo
 
 ```yaml
 services:
@@ -242,6 +344,12 @@ services:
         - action: sync
           path: ./frontend/src
           target: /app/src
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5173 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   backend:
     build:
@@ -264,6 +372,12 @@ services:
         - action: sync
           path: ./backend/src
           target: /app/src
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   db:
     image: postgres:15
@@ -277,6 +391,9 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
 networks:
   app-net:
@@ -288,7 +405,7 @@ volumes:
 
 ---
 
-## 6. Comparación: Desarrollo vs Producción
+## 7. Comparación: Desarrollo vs Producción
 
 | Aspecto              | Desarrollo                     | Producción                      |
 | :------------------- | :----------------------------- | :------------------------------ |
@@ -301,24 +418,10 @@ volumes:
 
 ---
 
-## 7. Comandos Útiles
-
-| Comando                                  | Uso                                     |
-| :--------------------------------------- | :-------------------------------------- |
-| `docker compose up --watch`              | Inicia con sincronización automática    |
-| `docker compose logs -f <servicio>`      | Monitorea logs en tiempo real           |
-| `docker compose exec <servicio> sh`      | Accede al shell del contenedor          |
-| `docker network ls`                      | Lista redes disponibles                 |
-| `docker network inspect <red>`           | Inspecciona configuración de red        |
-| `docker volume ls`                       | Lista volúmenes                         |
-| `docker compose down -v`                 | Elimina contenedores Y volúmenes        |
-
----
-
 ## Resumen Rápido
 
 ✅ **Redes**: Usa nombres de servicio para comunicación, separa capas con múltiples redes  
+✅ **Healthchecks**: Verifica que los servicios están operativos, no solo corriendo. Usa `start_period` y endpoints dedicados  
 ✅ **depends_on**: Controla orden de inicio, usa `condition: service_healthy` para esperas reales  
 ✅ **Volúmenes**: Bind mounts para desarrollo, named volumes para persistencia, anónimos para proteger directorios  
 ✅ **Watch**: Sincronización automática de cambios, usa `sync` para archivos y `rebuild` para dependencias
-
