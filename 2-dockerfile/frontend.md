@@ -1,11 +1,5 @@
 # Dockerfile para Aplicación Vite + React: Guía Detallada
 
-## Objetivo
-
-Comprender en profundidad cada directiva y decisión de diseño en un `Dockerfile` para una aplicación frontend construida con Vite y React. Este documento explica el **por qué** detrás de cada instrucción, no solo el **cómo**.
-
-
-
 ## Análisis Línea por Línea
 
 ### 1. `FROM node:22.13.1-slim`
@@ -330,27 +324,3 @@ Abre tu navegador en: `http://localhost:4173`
 | **Compatibilidad** | Estándar de facto | Compatible con comandos Docker |
 
 **Ventaja de Podman**: Mayor seguridad al no requerir un demonio con privilegios root.
-
----
-
-## Limpieza
-
-### Detener y Eliminar Contenedor
-
-```bash
-docker stop mi-app-container
-docker rm mi-app-container
-```
-
-### Eliminar Imagen
-
-```bash
-docker rmi mi-app-vite
-```
-
-### Limpieza Completa del Sistema
-
-```bash
-# Eliminar contenedores parados, imágenes sin usar, redes, etc.
-docker system prune -a
-```
