@@ -85,6 +85,8 @@ docker build -t ts-backend ./backend
 
 **Objetivo:** Ejecutar la aplicación, conectarla a la red y pasar la variable de entorno de conexión (`MONGODB_URI`).
 
+  🧠 Recuerda mirar como se llama la variable de entorno - ¿ `mongodb://localhost:27017/` ? -- 🧑‍🎓 ¿ la configuras en tu contenedor o en el código ?  
+
 ```bash
 docker run -d \
   --name ts-backend \
@@ -108,7 +110,7 @@ docker run -d \
 
 -----
 
-##  Diferencias entre Entornos
+## 🏗️ Diferencias entre Entornos 
 
 ### 1. Bash de Linux vs. Terminales de Windows (Bash/PowerShell)
 
@@ -135,22 +137,3 @@ La mayor ventaja de usar **Podman** en Linux es la capacidad de ejecutar contene
 
 **Resultado del Dockerfile** (ver Sección 2 - el Multi-Stage Build).
 
-### Código para Eliminar
-
-Una vez que completes el ejercicio, los siguientes contenedores, la red y el volumen deben ser eliminados.
-
-#### 1\. Detener y Eliminar Contenedores
-
-```bash
-docker stop ts-backend mongodb-container
-docker rm ts-backend mongodb-container
-```
-
-#### 2\. Eliminar Red y Volumen Nombrado
-
-**ADVERTENCIA:** Solo elimina el volumen `mongo-data` si estás seguro de que no contiene datos importantes de pruebas.
-
-```bash
-docker network rm ts-mongo-net
-docker volume rm mongo-data
-```
