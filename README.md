@@ -40,12 +40,19 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
 
 * **Ejercicio Práctico:** Hacer lo mismo que en el ejercicio anterior pero con la imagen del frontend, levantando esta vez la app 'completa' viviendo en una misma network.
 
+#### 🔎 Recursos recomendados
+##### [Dockerfile reference](https://docs.docker.com/reference/dockerfile/)
+
 ### [**Tema 4:** Definiendo Servicios con **`compose.yml`**.](./2-dockerfile/compose.md)
 * **Conceptos Clave:** 
   * Estructura del `compose.yml` (`version`, `services`), uso de la directiva `build` (en lugar de `image`), `ports`. Comandos **`docker compose up`** y **`down`**.
   * Para que sirve `.dockerignore` y como usarlo correctamente
 
 * **Ejercicio Práctico:** Crear un `compose.yml` que reemplace el comando `docker run` de los módulos anteriores.
+* 
+#### 🔎 Recursos recomendados
+##### [docker-`compose` reference](https://devhints.io/docker-compose)
+
 
 ### [**Tema 5:** Redes y Comunicación entre Servicios.](./2-dockerfile/development.md)
 * **Conceptos Clave:** 
