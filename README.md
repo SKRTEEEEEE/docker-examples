@@ -49,7 +49,7 @@ Ejemplos de uso de Docker, acompañados de pequeñas guías para aprender la teo
   * Para que sirve `.dockerignore` y como usarlo correctamente
 
 * **Ejercicio Práctico:** Crear un `compose.yml` que reemplace el comando `docker run` de los módulos anteriores.
-* 
+  
 #### 🔎 Recursos recomendados
 ##### [docker-`compose` reference](https://devhints.io/docker-compose)
 
@@ -81,10 +81,15 @@ Crear una configuración de `compose` (con sus Dockerfile correspondientes) para
   * **`restart`** policies.
   * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
   
-* **✏️ Ejercicio Práctico:** MICRO-SERVICIOS Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+* ** Ejercicio Práctico:** [MICRO-SERVICIOS] Crear Dockerfile y Dockerfile.dev para cada servicio, pensando en cual es el mejor enfoque para cada caso. Crear un compose.yml dinámico que permita de forma sencilla configurar el modo de desarrollo y el modo de producción, para ello se recomienda utilizar el enfoque de tener dos archivos de configuración de variables de entorno. El modo de desarrollo (el cual se recomienda sea el principal) ha de tener la posibilidad de desplegar-se con watch.
+  * Has de implementar las siguientes bases de datos en el compose.yml
+    - **PostgreSQL**: Estado de salud de feeds (Green/Yellow/Red)
+    - **Redis**: Cola de mensajes y control de duplicados
+    - **MongoDB**: Artículos clasificados y enriquecidos
 
 ### **Tema:** CI/CD I.
 * **Conceptos Clave:** 
+  * **docker models:** how run it and use it
   * 'Main/slow' action
   * Conceptos de las github action 
   
