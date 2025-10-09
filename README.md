@@ -77,20 +77,19 @@ Crear una configuración de `compose` (con sus Dockerfile correspondientes) para
 * **✏️ Ejercicio Práctico:** MICROSERVICIOS Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 
 ### **Tema:** CI/CD I.
-* **✏️ Conceptos Clave:** 
-  * Directivas **`environment`**, archivos **`.env`**
-  * **`restart`** policies.
-  * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
+* **Conceptos Clave:** 
+  * 'Main/slow' action
+  * Conceptos de las github action 
   
-* **✏️ Ejercicio Práctico:** IA_APP-models+?deployment? Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+* **✏️ Ejercicio Práctico:** IA_APP-models+?deployment? Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre re-inicios.
+* 
 ### **Tema:** Git/GitHub II 
 * **Conceptos Clave Git/GitHub:** 
   * delete branch remote and local, fork, public-private-template-archive
   * **`tag`:** y release
   * **`merge`, `reset`:** explorar merge con conflicto, `--soft` `--hard` `HEAD`
 * ** Conceptos Clave CI/CD:** 
-  * 'Main/slow' action
-  * Conceptos de las github action 
+
   
 * **✏️ Ejercicio Práctico:** IA+GitHub-pair programming Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 ### **Tema:** CI/CD II.

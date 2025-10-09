@@ -1,0 +1,126 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server
+    volumes:
+      - redis_data:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+    volumes:
+      - mongodb_data:/data/db
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  health-monitor:
+    build:
+      context: ./health-monitor
+      dockerfile: ${HEALTH_MONITOR_DOCKERFILE:-Dockerfile}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PORT: ${HEALTH_MONITOR_PORT:-8080}
+      CHECK_INTERVAL: ${CHECK_INTERVAL:-30s}
+    ports:
+      - "${HEALTH_MONITOR_EXTERNAL_PORT:-8080}:${HEALTH_MONITOR_PORT:-8080}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: ${RESTART_POLICY:-unless-stopped}
+    volumes:
+      - ${HEALTH_MONITOR_VOLUME:-health_monitor_empty}:/app
+
+  smart-harvester:
+    build:
+      context: ./smart-harvester
+      dockerfile: ${SMART_HARVESTER_DOCKERFILE:-Dockerfile}
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      PORT: ${SMART_HARVESTER_PORT:-3000}
+      HARVEST_INTERVAL: ${HARVEST_INTERVAL:-60}
+      ALLOWED_STATUSES: ${ALLOWED_STATUSES:-green,yellow}
+    ports:
+      - "${SMART_HARVESTER_EXTERNAL_PORT:-3000}:${SMART_HARVESTER_PORT:-3000}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: ${RESTART_POLICY:-unless-stopped}
+    volumes:
+      - ${SMART_HARVESTER_VOLUME:-smart_harvester_empty}:/app
+
+  ai-publisher:
+    build:
+      context: ./ai-publisher
+      dockerfile: ${AI_PUBLISHER_DOCKERFILE:-Dockerfile}
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      MONGO_HOST: mongodb
+      MONGO_PORT: 27017
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_DB: ${MONGO_DB}
+      PORT: ${AI_PUBLISHER_PORT:-5000}
+    ports:
+      - "${AI_PUBLISHER_EXTERNAL_PORT:-5000}:${AI_PUBLISHER_PORT:-5000}"
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    restart: ${RESTART_POLICY:-unless-stopped}
+    volumes:
+      - ${AI_PUBLISHER_VOLUME:-ai_publisher_empty}:/app
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongodb_data:
+  health_monitor_empty:
+  smart_harvester_empty:
+  ai_publisher_empty:
