@@ -50,6 +50,12 @@ services:
     build:
       context: ./health-monitor
       dockerfile: ${HEALTH_MONITOR_DOCKERFILE:-Dockerfile}
+    develop:
+      watch:
+        - action: rebuild
+          path: ./health-monitor
+          ignore:
+            - "*.md"
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -70,6 +76,14 @@ services:
     build:
       context: ./smart-harvester
       dockerfile: ${SMART_HARVESTER_DOCKERFILE:-Dockerfile}
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./smart-harvester
+          target: /app
+          ignore:
+            - node_modules/
+            - "*.md"
     environment:
       POSTGRES_HOST: postgres
       POSTGRES_USER: ${POSTGRES_USER}
@@ -96,6 +110,15 @@ services:
     build:
       context: ./ai-publisher
       dockerfile: ${AI_PUBLISHER_DOCKERFILE:-Dockerfile}
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./ai-publisher
+          target: /app
+          ignore:
+            - "__pycache__/"
+            - "*.pyc"
+            - "*.md"
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -106,6 +129,9 @@ services:
       MONGO_PASSWORD: ${MONGO_PASSWORD}
       MONGO_DB: ${MONGO_DB}
       PORT: ${AI_PUBLISHER_PORT:-5000}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-keyword}
     ports:
       - "${AI_PUBLISHER_EXTERNAL_PORT:-5000}:${AI_PUBLISHER_PORT:-5000}"
     depends_on:

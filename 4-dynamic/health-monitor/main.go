@@ -137,7 +137,7 @@ func checkFeed(id int, url string) {
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok", "service": "health-monitor", "health": "good"})
 }
 
 func feedsHandler(w http.ResponseWriter, r *http.Request) {

@@ -1,302 +1,274 @@
-# Smart Harvester Service
+# Smart Harvester - Cosechador Inteligente de Artículos
 
-RSS feed harvesting service built with Node.js. Fetches articles from monitored RSS feeds and queues them for processing via Redis.
+Servicio de recolección de artículos RSS construido con Node.js. Cosecha artículos de feeds saludables y los encola para procesamiento.
 
-## Description
+## Funcionalidad
 
-Smart Harvester is a microservice that:
-- Harvests articles from RSS feeds marked as healthy in the Health Monitor
-- Parses RSS/Atom feeds to extract article information
-- Deduplicates articles using Redis caching
-- Queues new articles to Redis for downstream processing
-- Provides REST API for manual harvesting and statistics
-- Runs periodic harvesting in the background
+- Cosecha artículos sólo de feeds Green/Yellow (Health Monitor)
+- Parsea feeds RSS/Atom
+- Deduplica artículos con Redis
+- Encola artículos nuevos para AI Publisher
+- API REST para cosecha manual y estadísticas
+- Cosecha periódica automática en background
 
-## Architecture
+## Stack Técnico
 
-- **Language**: Node.js 20 (LTS)
+- **Lenguaje**: Node.js 20 LTS
 - **Framework**: Express.js
-- **Databases**: 
-  - PostgreSQL (read feed status from Health Monitor)
-  - Redis (article caching and queueing)
-- **Port**: 3000 (configurable via `PORT` environment variable)
-- **Build Type**: Multi-stage Docker build for optimized production images
+- **Bases de Datos**:
+  - PostgreSQL (lee estado de feeds)
+  - Redis (caché y cola de mensajes)
+- **Puerto**: 3000 (configurable)
+- **Build**: Multi-stage optimizado
 
-## Prerequisites
-
-### For Docker
-- Docker 20.10+
-- Docker Compose 2.0+ (optional, for running with databases)
-
-### For Local Development
-- Node.js 20+ (LTS)
-- npm 10+
-- PostgreSQL 16+ (for feed status)
-- Redis 7+ (for article queue)
-
-## Getting Started
-
-### Option 1: Run with Docker (Standalone)
-
-Build and run the service alone:
+## Variables de Entorno
 
 ```bash
-# Build the image
-docker build -t smart-harvester .
-
-# Run with environment variables
-docker run -p 3000:3000 \
-  -e POSTGRES_HOST=host.docker.internal \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=feeds \
-  -e REDIS_HOST=host.docker.internal \
-  -e REDIS_PORT=6379 \
-  -e HARVEST_INTERVAL=60 \
-  -e ALLOWED_STATUSES=green,yellow \
-  smart-harvester
+POSTGRES_HOST=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=feeds
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=
+PORT=3000
+HARVEST_INTERVAL=60           # Segundos entre cosechas
+ALLOWED_STATUSES=green,yellow # Feeds permitidos
 ```
 
-### Option 2: Run with Docker Compose
+## Inicio Rápido
 
-From the project root directory:
+### Con Docker Compose (Recomendado)
 
 ```bash
-# Start all services
-docker compose up -d
-
-# Or just smart-harvester and its dependencies
-docker compose up -d postgres redis smart-harvester
+# Desde la raíz del proyecto
+docker compose up -d smart-harvester
 ```
 
-### Option 3: Run Locally Without Docker
-
-#### 1. Install Dependencies
+### Local (Desarrollo)
 
 ```bash
+# 1. Instalar dependencias
 npm install
-```
 
-#### 2. Set Up Databases
-
-Make sure PostgreSQL and Redis are running:
-
-```bash
-# Check PostgreSQL
-psql -U postgres -c "SELECT 1;"
-
-# Check Redis
-redis-cli ping
-```
-
-#### 3. Set Environment Variables
-
-```bash
-# Linux/Mac
+# 2. Configurar variables
 export POSTGRES_HOST=localhost
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=postgres
-export POSTGRES_DB=feeds
 export REDIS_HOST=localhost
-export REDIS_PORT=6379
-export PORT=3000
-export HARVEST_INTERVAL=60
-export ALLOWED_STATUSES=green,yellow
 
-# Windows PowerShell
-$env:POSTGRES_HOST="localhost"
-$env:POSTGRES_USER="postgres"
-$env:POSTGRES_PASSWORD="postgres"
-$env:POSTGRES_DB="feeds"
-$env:REDIS_HOST="localhost"
-$env:REDIS_PORT="6379"
-$env:PORT="3000"
-$env:HARVEST_INTERVAL="60"
-$env:ALLOWED_STATUSES="green,yellow"
-```
-
-#### 4. Run the Service
-
-```bash
-# Development mode (with auto-reload)
-npm run dev
-
-# Production mode
-npm start
+# 3. Ejecutar
+node index.js
 ```
 
 ## API Endpoints
 
 ### Health Check
-```
+
+```bash
 GET /health
 ```
-Returns service health status.
 
-### Get Statistics
+Respuesta:
+```json
+{"status":"ok","service":"smart-harvester"}
 ```
+
+### Estadísticas
+
+```bash
 GET /stats
 ```
-Returns queue length, cached articles count, and configuration.
 
-### Manual Harvest
+Respuesta:
+```json
+{
+  "queue_length": 15,
+  "cached_articles": 120,
+  "harvest_interval": 60,
+  "allowed_statuses": ["green","yellow"]
+}
 ```
+
+### Cosecha Manual
+
+```bash
 POST /harvest
 ```
-Triggers immediate harvest of all eligible feeds.
 
-## Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `POSTGRES_HOST` | PostgreSQL hostname | `postgres` | Yes |
-| `POSTGRES_USER` | PostgreSQL username | `postgres` | Yes |
-| `POSTGRES_PASSWORD` | PostgreSQL password | - | Yes |
-| `POSTGRES_DB` | Database name | `feeds` | Yes |
-| `REDIS_HOST` | Redis hostname | `redis` | Yes |
-| `REDIS_PORT` | Redis port | `6379` | No |
-| `REDIS_PASSWORD` | Redis password (if auth enabled) | - | No |
-| `PORT` | HTTP server port | `3000` | No |
-| `HARVEST_INTERVAL` | Harvest interval in seconds | `60` | No |
-| `ALLOWED_STATUSES` | Comma-separated feed statuses to harvest | `green,yellow` | No |
-
-## How It Works
-
-### Harvest Process
-
-1. **Query Feeds**: Reads feeds from PostgreSQL with status in `ALLOWED_STATUSES`
-2. **Parse RSS**: Fetches and parses each RSS/Atom feed
-3. **Deduplicate**: Checks Redis cache to avoid processing duplicate articles
-4. **Cache**: Stores article hash in Redis with 7-day TTL
-5. **Queue**: Pushes new articles to `articles:queue` Redis list for processing by AI Publisher
-
-### Data Flow
-
-```
-PostgreSQL (feeds) → Smart Harvester → Redis (articles:queue) → AI Publisher
+Respuesta:
+```json
+{"status":"harvest started"}
 ```
 
-## Development
+Inicia cosecha asíncrona de todos los feeds permitidos.
 
-### Project Structure
+### Limpiar Caché
+
+```bash
+POST /cache/clear
+```
+
+Elimina artículos cacheados (útil para testing).
+
+## Flujo de Trabajo
+
+1. **Consulta Health Monitor**: Obtiene feeds con estado Green/Yellow
+2. **Descarga Feed**: Realiza petición HTTP al feed RSS
+3. **Parsea XML**: Extrae artículos del feed
+4. **Deduplica**: Verifica hash en Redis para evitar duplicados
+5. **Encola**: Envía artículos nuevos a cola `articles:queue`
+6. **Espera**: Duerme `HARVEST_INTERVAL` segundos y repite
+
+## Estructura de Código
 
 ```
 smart-harvester/
-├── index.js          # Main application file
-├── package.json      # Dependencies and scripts
-├── Dockerfile        # Production build
-├── Dockerfile.dev    # Development build
-└── README.md         # This file
+├── index.js         # Servidor Express y lógica principal
+├── package.json     # Dependencias npm
+├── Dockerfile       # Build producción multi-stage
+└── README.md        # Esta documentación
 ```
 
-### Dependencies
+## Desarrollo
 
-- **express**: Web framework
-- **pg**: PostgreSQL client
-- **ioredis**: Redis client with robust error handling
-- **rss-parser**: RSS/Atom feed parser
-- **crypto**: Article hashing (built-in Node.js module)
+### Ejecutar Tests
 
-### Scripts
+```bash
+npm test
+```
+
+### Watch Mode (Desarrollo)
+
+```bash
+npm run dev  # Con nodemon si está instalado
+```
+
+### Build Docker
+
+```bash
+docker build -t smart-harvester .
+```
+
+## Dockerfile Explicado
+
+```dockerfile
+# Etapa builder: instala dependencias
+FROM node:20-alpine AS builder
+# --omit=dev excluye devDependencies
+RUN npm install --omit=dev
+
+# Etapa final: copia node_modules optimizado
+FROM node:20-alpine
+COPY --from=builder /app .
+# USER node: ejecuta como no-root (seguridad)
+USER node
+```
+
+## Dependencias npm
 
 ```json
 {
-  "start": "node index.js",
-  "dev": "nodemon index.js"
+  "express": "^4.18.2",      // Servidor HTTP
+  "pg": "^8.11.3",           // Cliente PostgreSQL
+  "redis": "^4.6.10",        // Cliente Redis
+  "xml2js": "^0.6.2",        // Parser XML
+  "node-fetch": "^3.3.2"     // Cliente HTTP
 }
 ```
 
-### Building
+## Solución de Problemas
+
+### No encuentra feeds
 
 ```bash
-# Development
-npm install
+# Verificar que Health Monitor tiene feeds
+curl http://localhost:8080/feeds
 
-# Production
-npm install --omit=dev
+# Si está vacío, añadir feeds
+curl -X POST http://localhost:8080/feeds/add \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://news.ycombinator.com/rss"}'
 ```
 
-## Docker Images
+### Cola no crece
 
-### Production Image (Dockerfile)
-- Multi-stage build
-- Based on `node:20-alpine`
-- Installs only production dependencies
-- ~150MB final image size
-- Runs as non-root `node` user
+```bash
+# Verificar estadísticas
+curl http://localhost:3000/stats
 
-### Development Image (Dockerfile.dev)
-- Single-stage build
-- Based on `node:20-alpine`
-- Includes `nodemon` for auto-reload
-- Suitable for development with volume mounts
+# Ver logs
+docker compose logs -f smart-harvester
 
-## Article Structure
+# Probar cosecha manual
+curl -X POST http://localhost:3000/harvest
+```
 
-Articles queued to Redis have the following structure:
+### Errores de conexión Redis
+
+```bash
+# Verificar Redis
+docker compose ps redis
+docker compose logs redis
+
+# Probar conexión
+docker compose exec redis redis-cli ping
+```
+
+## Formato de Artículo Encolado
 
 ```json
 {
-  "title": "Article Title",
+  "title": "Ejemplo de Artículo",
   "link": "https://example.com/article",
-  "pubDate": "2024-01-15T10:30:00Z",
-  "content": "Article content snippet...",
+  "content": "Contenido completo del artículo...",
   "source": "https://example.com/feed.xml",
-  "hash": "md5-hash-of-article"
+  "pubDate": "Mon, 09 Oct 2025 14:00:00 GMT",
+  "hash": "a1b2c3d4..."
 }
 ```
 
-## Troubleshooting
+El hash se usa para deduplicación en Redis.
 
-### Service won't connect to databases
-
-1. Check PostgreSQL and Redis are running:
-   ```bash
-   docker compose ps postgres redis
-   ```
-
-2. Verify connections:
-   ```bash
-   docker compose logs smart-harvester | grep -i "connected\|error"
-   ```
-
-### No articles being harvested
-
-1. Check if feeds are marked as green/yellow in Health Monitor:
-   ```bash
-   curl http://localhost:8080/feeds
-   ```
-
-2. Verify `ALLOWED_STATUSES` matches feed statuses
-
-3. Check harvest interval:
-   ```bash
-   curl http://localhost:3000/stats
-   ```
-
-### Redis authentication errors
-
-If Redis requires authentication, set `REDIS_PASSWORD`:
+## Logs
 
 ```bash
-REDIS_PASSWORD=your-redis-password
+# Ver logs en tiempo real
+docker compose logs -f smart-harvester
+
+# Últimas 100 líneas
+docker compose logs --tail=100 smart-harvester
 ```
 
-### Port already in use
-
-Change the external port in `compose.yml` or `.env`:
+## Testing Manual
 
 ```bash
-SMART_HARVESTER_EXTERNAL_PORT=3001
+# 1. Añadir feed de prueba
+curl -X POST http://localhost:8080/feeds/add \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://news.ycombinator.com/rss"}'
+
+# 2. Esperar 30s (health check)
+
+# 3. Verificar que está Green
+curl http://localhost:8080/feeds
+
+# 4. Forzar cosecha
+curl -X POST http://localhost:3000/harvest
+
+# 5. Verificar cola
+curl http://localhost:3000/stats
 ```
 
-## Performance
+## Próximas Mejoras
 
-- Harvests feeds in sequence (not parallel) to avoid overwhelming RSS sources
-- Uses MD5 hashing for fast article deduplication
-- Redis cache with 7-day TTL prevents unbounded growth
-- Configurable harvest interval balances freshness vs. load
+- [ ] Soporte para feeds Atom
+- [ ] Rate limiting por dominio
+- [ ] Reintento con backoff exponencial
+- [ ] Métricas de artículos procesados
+- [ ] Filtrado de artículos por fecha
 
-## License
+---
 
-This is an educational project for learning Docker environment variables and dynamic compose configurations.
+**Puerto**: 3000  
+**Healthcheck**: `GET /health`  
+**Dependencias**: PostgreSQL, Redis  
+**Cola Redis**: `articles:queue`

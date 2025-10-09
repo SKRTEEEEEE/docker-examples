@@ -37,21 +37,21 @@ db = mongo_client[os.getenv('MONGO_DB', 'articles')]
 articles_collection = db['articles']
 rules_collection = db['publishing_rules']
 
-CATEGORIES = ['Technology', 'Finance', 'Health', 'Politics', 'Entertainment']
+CATEGORIES = ['Technology', 'Finance', 'Health', 'Politics', 'Entertainment', 'General']
 
-def classify_article(text):
-    """Simple keyword-based classification"""
+def classify_article_keyword(text):
+    """Clasificación basada en palabras clave"""
     text_lower = text.lower()
     
-    scores = {cat: 0 for cat in CATEGORIES}
-    
     keywords = {
-        'Technology': ['tech', 'software', 'ai', 'computer', 'digital', 'app', 'code'],
-        'Finance': ['money', 'bank', 'stock', 'market', 'invest', 'economy', 'finance'],
-        'Health': ['health', 'medical', 'doctor', 'disease', 'hospital', 'medicine'],
-        'Politics': ['government', 'election', 'president', 'vote', 'congress', 'senate'],
-        'Entertainment': ['movie', 'music', 'celebrity', 'film', 'concert', 'show'],
+        'Technology': ['tech', 'software', 'ai', 'computer', 'digital', 'app', 'code', 'data', 'internet', 'algorithm'],
+        'Finance': ['money', 'bank', 'stock', 'market', 'invest', 'economy', 'finance', 'trading', 'crypto', 'currency'],
+        'Health': ['health', 'medical', 'doctor', 'disease', 'hospital', 'medicine', 'patient', 'treatment', 'wellness'],
+        'Politics': ['government', 'election', 'president', 'vote', 'congress', 'senate', 'law', 'policy', 'minister'],
+        'Entertainment': ['movie', 'music', 'celebrity', 'film', 'concert', 'show', 'actor', 'artist', 'game'],
     }
+    
+    scores = {cat: 0 for cat in keywords.keys()}
     
     for category, words in keywords.items():
         for word in words:
@@ -63,6 +63,47 @@ def classify_article(text):
         return 'General'
     
     return max(scores, key=scores.get)
+
+def classify_article_ai(text):
+    """Clasificación mejorada con IA usando OpenAI o Anthropic"""
+    openai_key = os.getenv('OPENAI_API_KEY')
+    anthropic_key = os.getenv('ANTHROPIC_API_KEY')
+    
+    if not openai_key and not anthropic_key:
+        logger.warning("No AI API keys configured, falling back to keyword classification")
+        return classify_article_keyword(text)
+    
+    try:
+        if openai_key:
+            import openai
+            openai.api_key = openai_key
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": f"You are a content classifier. Classify the following text into one of these categories: {', '.join(CATEGORIES[:-1])}. Respond with only the category name."},
+                    {"role": "user", "content": text[:1000]}
+                ],
+                max_tokens=20,
+                temperature=0.3
+            )
+            category = response.choices[0].message.content.strip()
+            if category in CATEGORIES:
+                return category
+        
+        return classify_article_keyword(text)
+        
+    except Exception as e:
+        logger.error(f"AI classification error: {e}")
+        return classify_article_keyword(text)
+
+def classify_article(text):
+    """Clasificar artículo según método configurado"""
+    ai_model = os.getenv('AI_MODEL', 'keyword')
+    
+    if ai_model in ('openai', 'anthropic'):
+        return classify_article_ai(text)
+    else:
+        return classify_article_keyword(text)
 
 def generate_summary(text, max_length=150):
     """Simple extractive summary"""
@@ -145,7 +186,7 @@ def worker_loop():
 
 @app.route('/health')
 def health():
-    return jsonify({'status': 'ok', 'service': 'ai-publisher'})
+    return jsonify({'status': 'ok', 'service': 'ai-publisher', 'health': 'good'})
 
 @app.route('/articles')
 def get_articles():

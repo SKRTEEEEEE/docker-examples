@@ -1,212 +1,319 @@
-# RSS app
+# Agregador RSS Inteligente con Clasificación IA
 
-## 🏗️ Project Structure
+Sistema de procesamiento de feeds RSS con 3 microservicios y 4 bases de datos distintas para gestionar salud de feeds, almacenamiento y clasificación inteligente de contenido.
 
-This project demonstrates a **3-microservice RSS aggregator** with dynamic configuration:
+## 🎯 Flujo del Sistema
+
+1. **Health Monitor** (Go) → Monitoriza latencia y salud de feeds RSS
+2. **Smart Harvester** (Node.js) → Cosecha artículos sólo de feeds "Green"
+3. **AI Publisher** (Python) → Clasifica y enriquece contenido con IA
+
+## 🛠️ Arquitectura
 
 ```
-4-dynamic/
-├── health-monitor/        # Go service - monitors feed health
-│   ├── main.go
-│   ├── Dockerfile        # Production build
-│   ├── Dockerfile.dev    # Development build
-│   ├── go.mod
-│   └── go.sum
-├── smart-harvester/       # Node.js service - harvests RSS feeds
-│   ├── index.js
-│   ├── package.json
-│   ├── Dockerfile
-│   └── Dockerfile.dev
-├── ai-publisher/          # Python service - AI content processing
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── Dockerfile.dev
-├── compose.yml            # Main compose file (dynamic)
-├── .env                   # Default environment (dev)
-├── .env.dev              # Development configuration
-└── .env.prod             # Production configuration
+├── health-monitor/     # Go - Monitorización de feeds
+├── smart-harvester/    # Node.js - Recolección de artículos
+├── ai-publisher/       # Python - Clasificación IA
+├── compose.yml         # Configuración Docker Compose con watch
+├── .env               # Entorno desarrollo (por defecto)
+├── .env.dev           # Configuración desarrollo
+└── .env.prod          # Configuración producción
 ```
 
----
+### Bases de Datos
 
-## 🚀 Getting Started
+- **PostgreSQL**: Estado de salud de feeds (Green/Yellow/Red)
+- **Redis**: Cola de mensajes y control de duplicados
+- **MongoDB**: Artículos clasificados y enriquecidos
+- **InfluxDB**: Métricas históricas de latencia
 
-### 1. Start in Development Mode
+## 🚀 Inicio Rápido
+
+### Desarrollo (con watch automático)
 
 ```bash
-# Uses .env (development by default)
+# Inicia con recarga automática al modificar código
+docker compose watch
+
+# O modo tradicional
 docker compose up --build
-
-# Or explicitly specify dev env
-docker compose --env-file .env.dev up --build
 ```
 
-**Development features:**
-- Hot reload (source code mounted as volumes)
-- No restart policy (manual control)
-- Debug logging enabled
-- Faster builds with `Dockerfile.dev`
+El modo watch recarga automáticamente:
+- **health-monitor**: Reconstruye imagen al cambiar código Go
+- **smart-harvester**: Sincroniza cambios y reinicia servicio
+- **ai-publisher**: Sincroniza cambios Python y reinicia
 
-### 2. Start in Production Mode
+### Producción
 
 ```bash
-# Use production environment
 docker compose --env-file .env.prod up -d --build
 ```
 
-**Production features:**
-- Optimized multi-stage builds
-- Always restart policy
-- Minimal logging
-- No source code mounted
-- Smaller image sizes
+## 🧪 Verificar Sistema
 
-### [3. Verify Services](./api-test.md)
-
----
-
-## 🔑 Environment Variable Reference
-
-### Global Variables
-
-| Variable | Description | Dev Value | Prod Value |
-|----------|-------------|-----------|------------|
-| `RESTART_POLICY` | Container restart policy | `no` | `always` |
-
-### Database Configuration
-
-**PostgreSQL:**
-- `POSTGRES_USER`: Database user
-- `POSTGRES_PASSWORD`: Database password
-- `POSTGRES_DB`: Database name
-- `POSTGRES_PORT`: External port (default: 5432)
-
-**Redis:**
-- `REDIS_PASSWORD`: Redis password
-- `REDIS_PORT`: External port (default: 6379)
-
-**MongoDB:**
-- `MONGO_USER`: MongoDB root user
-- `MONGO_PASSWORD`: MongoDB root password
-- `MONGO_DB`: Database name
-- `MONGO_PORT`: External port (default: 27017)
-
-### Service Configuration
-
-**Health Monitor (Go):**
-- `HEALTH_MONITOR_DOCKERFILE`: Which Dockerfile to use
-- `HEALTH_MONITOR_PORT`: Internal port
-- `HEALTH_MONITOR_EXTERNAL_PORT`: External port
-- `CHECK_INTERVAL`: How often to check feeds (e.g., `30s`, `1m`)
-
-**Smart Harvester (Node.js):**
-- `SMART_HARVESTER_DOCKERFILE`: Which Dockerfile to use
-- `SMART_HARVESTER_PORT`: Internal port
-- `HARVEST_INTERVAL`: Harvest interval in seconds
-- `ALLOWED_STATUSES`: Which feed statuses to harvest (e.g., `green,yellow`)
-
-**AI Publisher (Python):**
-- `AI_PUBLISHER_DOCKERFILE`: Which Dockerfile to use
-- `AI_PUBLISHER_PORT`: Internal port
-
----
-
-## 📖 Practical Examples
-
-### Example 1: Override Single Variable
+### 1. Comprobar Servicios
 
 ```bash
-# Override just the restart policy
-RESTART_POLICY=always docker compose up -d
+docker ps
+curl http://localhost:8080/health  # Health Monitor
+curl http://localhost:3000/health  # Smart Harvester
+curl http://localhost:5000/health  # AI Publisher
 ```
 
-### Example 2: Custom Environment File
+### 2. Añadir Feeds RSS
 
 ```bash
-# Create custom staging environment
-cp .env.dev .env.staging
-# Edit .env.staging to tweak values
-docker compose --env-file .env.staging up
+curl -X POST http://localhost:8080/feeds/add \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://news.ycombinator.com/rss"}'
+
+curl http://localhost:8080/feeds  # Ver estado de feeds
 ```
 
-### Example 3: Inspect Resolved Configuration
+### 3. Cosechar Artículos
 
 ```bash
-# See final configuration with env vars resolved
+curl -X POST http://localhost:3000/harvest
+curl http://localhost:3000/stats  # Ver estadísticas
+```
+
+### 4. Ver Artículos Clasificados
+
+```bash
+curl http://localhost:5000/articles
+curl http://localhost:5000/articles?category=Technology
+curl http://localhost:5000/stats  # Estadísticas por categoría
+```
+
+## ⚙️ Configuración
+
+### Variables Esenciales
+
+**Modo de Operación:**
+- `RESTART_POLICY`: `no` (dev) / `unless-stopped` (prod)
+
+**Clasificación IA:**
+- `AI_MODEL`: `keyword` (por defecto) / `openai` / `anthropic`
+- `OPENAI_API_KEY`: Clave API de OpenAI (opcional)
+- `ANTHROPIC_API_KEY`: Clave API de Anthropic (opcional)
+
+**Intervalos:**
+- `CHECK_INTERVAL`: Frecuencia chequeo feeds (ej: `30s`, `1m`)
+- `HARVEST_INTERVAL`: Intervalo cosecha en segundos (ej: `60`)
+
+### Bases de Datos
+
+Configuración en `.env`:
+
+```bash
+# PostgreSQL
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=feeds
+
+# Redis (password opcional en dev)
+REDIS_PASSWORD=
+
+# MongoDB
+MONGO_USER=root
+MONGO_PASSWORD=example
+MONGO_DB=articles
+```
+
+## 🔬 Clasificación con IA
+
+### Modo Keyword (Por Defecto)
+
+Clasificación basada en palabras clave. No requiere API keys.
+
+```bash
+AI_MODEL=keyword
+```
+
+Categorías: Technology, Finance, Health, Politics, Entertainment, General
+
+### Modo OpenAI
+
+Requiere clave API de OpenAI:
+
+```bash
+AI_MODEL=openai
+OPENAI_API_KEY=sk-...
+```
+
+Usa GPT-3.5-turbo para clasificación más precisa.
+
+### Modo Anthropic
+
+Requiere clave API de Anthropic:
+
+```bash
+AI_MODEL=anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+## 🔧 Desarrollo
+
+### Estructura de Dockerfiles
+
+Cada servicio tiene:
+- `Dockerfile`: Build multi-etapa optimizado (producción)
+- `Dockerfile.dev`: Build rápido para desarrollo (opcional)
+
+Comentarios en español explican líneas especiales.
+
+### Watch Mode
+
+El compose.yml incluye configuración `develop.watch`:
+
+- **Go (health-monitor)**: Reconstruye completamente
+- **Node.js (smart-harvester)**: Sincroniza y reinicia
+- **Python (ai-publisher)**: Sincroniza y reinicia
+
+```bash
+# Activa watch mode
+docker compose watch
+```
+
+### Inspeccionar Configuración
+
+```bash
+# Ver configuración final con variables resueltas
+docker compose config
+
+# Ver con entorno específico
 docker compose --env-file .env.prod config
-
-# Save resolved config
-docker compose config > resolved-compose.yml
 ```
 
-### Example 4: Scale Services
+## 📊 Monitorización
+
+### Logs en Tiempo Real
 
 ```bash
-# Scale harvester to 3 instances
-docker compose up -d --scale smart-harvester=3
+# Todos los servicios
+docker compose logs -f
+
+# Servicio específico
+docker compose logs -f ai-publisher
+
+# Últimas 50 líneas
+docker compose logs --tail=50 smart-harvester
 ```
 
-### Example 5: Override in Command
+### Estado de Contenedores
 
 ```bash
-# Override environment in command
-docker compose run -e DEBUG=true smart-harvester npm test
+docker compose ps
+docker compose top
 ```
 
+## 🛑 Detener Sistema
+
+```bash
+# Detener sin borrar volúmenes
+docker compose down
+
+# Detener y borrar volúmenes (limpieza completa)
+docker compose down -v
+
+# Modo producción
+docker compose --env-file .env.prod down
+```
+
+## 📋 Workflow Completo
+
+1. **Iniciar servicios**
+   ```bash
+   docker compose up -d
+   ```
+
+2. **Añadir feeds**
+   ```bash
+   curl -X POST http://localhost:8080/feeds/add \
+     -H "Content-Type: application/json" \
+     -d '{"url":"https://techcrunch.com/feed/"}'
+   ```
+
+3. **Esperar 30s** (health monitor chequea feeds)
+
+4. **Verificar estado**
+   ```bash
+   curl http://localhost:8080/feeds
+   ```
+
+5. **Cosechar artículos**
+   ```bash
+   curl -X POST http://localhost:3000/harvest
+   ```
+
+6. **Esperar 5-10s** (procesamiento IA)
+
+7. **Ver resultados**
+   ```bash
+   curl http://localhost:5000/articles
+   curl http://localhost:5000/stats
+   ```
+
+## 🐛 Solución de Problemas
+
+### Servicios no arrancan
+
+```bash
+# Ver logs de error
+docker compose logs
+
+# Reconstruir desde cero
+docker compose down -v
+docker compose up --build
+```
+
+### Base de datos no conecta
+
+```bash
+# Verificar health checks
+docker compose ps
+
+# Ver logs de BD específica
+docker compose logs postgres
+docker compose logs mongodb
+```
+
+### Puerto en uso
+
+```bash
+# Modificar puertos externos en .env
+HEALTH_MONITOR_EXTERNAL_PORT=8081
+SMART_HARVESTER_EXTERNAL_PORT=3001
+AI_PUBLISHER_EXTERNAL_PORT=5001
+```
+
+## 📚 Documentación Adicional
+
+- **Archivos `.http`**: Ver `api-test.md` para testing con REST Client
+- **READMEs servicios**: Cada carpeta tiene README específico
+- **Diagramas**: Ver `dynamic.md` para arquitectura detallada
+
+## ✅ Checklist de Verificación
+
+- [ ] Servicios corriendo: `docker compose ps`
+- [ ] Health checks OK: `curl http://localhost:8080/health`
+- [ ] Feeds añadidos: `curl http://localhost:8080/feeds`
+- [ ] Feeds con estado Green: Verificar respuesta anterior
+- [ ] Cosecha ejecutada: `curl -X POST http://localhost:3000/harvest`
+- [ ] Artículos procesados: `curl http://localhost:5000/articles`
+- [ ] Clasificación funciona: Verificar campo `category` en artículos
+
+## 🎯 Próximos Pasos
+
+1. Añade tu propia clave de OpenAI en `.env` para clasificación mejorada
+2. Crea reglas de publicación en MongoDB
+3. Personaliza categorías en `ai-publisher/app.py`
+4. Añade más feeds RSS de diferentes temáticas
+5. Implementa alertas cuando feeds fallen
+
 ---
 
-## 🎓 Key Takeaways
-
-1. **Environment variables** make containers configurable and portable
-2. **`.env` files** centralize configuration management
-3. **Restart policies** ensure service availability in production
-4. **Dynamic compose** allows one setup for multiple environments
-5. Use `Dockerfile.dev` for development with hot reload
-6. Use optimized `Dockerfile` (multi-stage) for production
-7. Always use specific `.env` files for production deployments
-8. Test configuration with `docker compose config` before deploying
-
----
-
-## 📝 Best Practices
-
-✅ **DO:**
-- Use `.env` files for configuration
-- Keep secrets in `.env.local` (never commit!)
-- Use `restart: unless-stopped` for production
-- Use multi-stage builds for smaller images
-- Document all environment variables
-- Use health checks with restart policies
-
-❌ **DON'T:**
-- Hardcode secrets in Dockerfiles or compose.yml
-- Commit `.env.prod` with real secrets
-- Use `restart: always` in development
-- Mount source code volumes in production
-- Use `latest` tags in production
-
----
-
-## 🔗 Related Modules
-
-- **Module 2**: Dockerfile basics and multi-stage builds
-- **Module 3**: Docker networks and communication
-- **Module 5**: Docker volumes and data persistence
-
----
-
-## 🏁 Exercise Complete!
-
-You've learned how to:
-✓ Configure services with environment variables  
-✓ Use `.env` files for different environments  
-✓ Implement restart policies  
-✓ Create dynamic compose setups for dev and prod  
-✓ Build a multi-service application with proper configuration management  
-
-**Next Steps:**
-- Experiment with different environment configurations
-- Create your own `.env.staging` file
-- Try switching between dev and prod modes
-- Explore volume mounting differences between environments
+**Versión**: 1.0  
+**Stack**: Go 1.23 + Node.js 20 + Python 3.11  
+**Docker Compose**: v2.x con watch support

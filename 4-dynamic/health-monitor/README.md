@@ -1,263 +1,235 @@
-# Health Monitor Service
+# Health Monitor - Monitor de Salud de Feeds
 
-RSS feed health monitoring service built with Go. Monitors RSS feed availability, tracks response times, and stores feed health metrics in PostgreSQL.
+Servicio de monitorización de feeds RSS construido con Go. Verifica disponibilidad, mide latencias y clasifica feeds como Green/Yellow/Red.
 
-## Description
+## Funcionalidad
 
-Health Monitor is a microservice that:
-- Tracks RSS feed health status (green/yellow/red based on availability and response time)
-- Monitors feed latency and availability
-- Provides REST API for feed management
-- Stores feed data and metrics in PostgreSQL
-- Runs periodic health checks in the background
+- Monitoriza disponibilidad de feeds RSS
+- Mide latencia y tiempo de respuesta
+- Clasifica feeds: **Green** (< 1s), **Yellow** (1-3s), **Red** (> 3s o error)
+- API REST para gestión de feeds
+- Almacena datos en PostgreSQL
+- Chequeos periódicos en background
 
-## Architecture
+## Stack Técnico
 
-- **Language**: Go 1.23
-- **Database**: PostgreSQL
-- **Port**: 8080 (configurable via `PORT` environment variable)
-- **Build Type**: Multi-stage Docker build for optimized production images
+- **Lenguaje**: Go 1.23
+- **Base de Datos**: PostgreSQL 16
+- **Puerto**: 8080 (configurable)
+- **Build**: Multi-stage optimizado
 
-## Prerequisites
-
-### For Docker
-- Docker 20.10+
-- Docker Compose 2.0+ (optional, for running with databases)
-
-### For Local Development
-- Go 1.23+
-- PostgreSQL 16+
-- Make (optional)
-
-## Getting Started
-
-### Option 1: Run with Docker (Standalone)
-
-Build and run the service alone:
+## Variables de Entorno
 
 ```bash
-# Build the image
-docker build -t health-monitor .
-
-# Run with environment variables
-docker run -p 8080:8080 \
-  -e POSTGRES_HOST=host.docker.internal \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=feeds \
-  -e CHECK_INTERVAL=30s \
-  health-monitor
+POSTGRES_HOST=postgres
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=feeds
+PORT=8080
+CHECK_INTERVAL=30s  # Intervalo de chequeo
 ```
 
-### Option 2: Run with Docker Compose
+## Inicio Rápido
 
-From the project root directory:
+### Con Docker Compose (Recomendado)
 
 ```bash
-# Start all services
-docker compose up -d
-
-# Or just health-monitor and its dependencies
-docker compose up -d postgres health-monitor
+# Desde la raíz del proyecto
+docker compose up -d health-monitor
 ```
 
-### Option 3: Run Locally Without Docker
-
-#### 1. Install Dependencies
+### Local (Desarrollo)
 
 ```bash
+# 1. Instalar dependencias
 go mod download
-```
 
-#### 2. Set Up PostgreSQL
+# 2. Configurar PostgreSQL
+createdb feeds
 
-Make sure PostgreSQL is running and create the database:
-
-```sql
-CREATE DATABASE feeds;
-```
-
-#### 3. Set Environment Variables
-
-```bash
-# Linux/Mac
-export POSTGRES_HOST=localhost
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=postgres
-export POSTGRES_DB=feeds
-export PORT=8080
-export CHECK_INTERVAL=30s
-
-# Windows PowerShell
-$env:POSTGRES_HOST="localhost"
-$env:POSTGRES_USER="postgres"
-$env:POSTGRES_PASSWORD="postgres"
-$env:POSTGRES_DB="feeds"
-$env:PORT="8080"
-$env:CHECK_INTERVAL="30s"
-```
-
-#### 4. Run the Service
-
-```bash
-# Development mode (with auto-reload if using air)
+# 3. Ejecutar
 go run main.go
-
-# Or build and run
-go build -o health-monitor
-./health-monitor  # Linux/Mac
-.\health-monitor.exe  # Windows
 ```
 
 ## API Endpoints
 
 ### Health Check
-```
+
+```bash
 GET /health
 ```
-Returns service health status.
 
-### Add Feed
+Respuesta:
+```json
+{"status":"ok"}
 ```
+
+### Añadir Feed
+
+```bash
 POST /feeds/add
 Content-Type: application/json
 
+{"url": "https://news.ycombinator.com/rss"}
+```
+
+### Listar Feeds
+
+```bash
+GET /feeds
+```
+
+Respuesta:
+```json
+[
+  {
+    "url": "https://news.ycombinator.com/rss",
+    "status": "green",
+    "latency_ms": 250,
+    "last_checked": "2025-10-09T14:00:00Z"
+  }
+]
+```
+
+### Obtener Feed Específico
+
+```bash
+GET /feeds/{url}
+```
+
+### Métricas Agregadas
+
+```bash
+GET /metrics
+```
+
+Respuesta:
+```json
 {
-  "url": "https://example.com/feed.xml"
+  "green": 5,
+  "yellow": 2,
+  "red": 1,
+  "total": 8
 }
 ```
 
-### List All Feeds
-```
-GET /feeds
-```
-Returns all monitored feeds with their status.
+### Eliminar Feed
 
-### Get Metrics
-```
-GET /metrics
-```
-Returns aggregated metrics grouped by feed status.
-
-## Environment Variables
-
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `POSTGRES_HOST` | PostgreSQL hostname | `postgres` | Yes |
-| `POSTGRES_USER` | PostgreSQL username | `postgres` | Yes |
-| `POSTGRES_PASSWORD` | PostgreSQL password | - | Yes |
-| `POSTGRES_DB` | Database name | `feeds` | Yes |
-| `PORT` | HTTP server port | `8080` | No |
-| `CHECK_INTERVAL` | Health check interval | `30s` | No |
-
-## Database Schema
-
-### feeds table
-```sql
-CREATE TABLE IF NOT EXISTS feeds (
-    id SERIAL PRIMARY KEY,
-    url TEXT UNIQUE NOT NULL,
-    status TEXT NOT NULL,
-    last_check TIMESTAMP,
-    latency_ms INTEGER,
-    error_message TEXT
-);
+```bash
+DELETE /feeds/{url}
 ```
 
-## Development
+## Lógica de Clasificación
 
-### Project Structure
+- **Green**: Latencia < 1000ms
+- **Yellow**: Latencia 1000-3000ms
+- **Red**: Latencia > 3000ms o error de conexión
+
+## Estructura de Código
 
 ```
 health-monitor/
-├── main.go           # Main application file
-├── Dockerfile        # Production build
-├── Dockerfile.dev    # Development build
-├── go.mod           # Go dependencies
-├── go.sum           # Dependency checksums
-└── README.md        # This file
+├── main.go           # Punto de entrada, servidor HTTP
+├── database.go       # Conexión y queries PostgreSQL
+├── checker.go        # Lógica de verificación de feeds
+├── go.mod           # Dependencias Go
+├── Dockerfile       # Build producción multi-stage
+└── README.md        # Esta documentación
 ```
 
-### Building
+## Desarrollo
+
+### Build Local
 
 ```bash
-# Development build
 go build -o health-monitor
-
-# Production build (static binary)
-CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o health-monitor .
+./health-monitor
 ```
 
-### Testing
+### Tests
 
 ```bash
-# Run tests
 go test ./...
-
-# Run with coverage
-go test -cover ./...
 ```
 
-## Docker Images
-
-### Production Image (Dockerfile)
-- Multi-stage build
-- Based on `golang:1.23-alpine` for building
-- Final image based on `alpine:latest`
-- ~10-15MB final image size
-- Includes only the compiled binary and ca-certificates
-
-### Development Image (Dockerfile.dev)
-- Single-stage build
-- Based on `golang:1.23-alpine`
-- Includes full Go toolchain
-- Suitable for development with volume mounts
-
-## Health Check Logic
-
-The service categorizes feeds into three statuses:
-
-- **Green**: Feed is accessible and response time < 1000ms
-- **Yellow**: Feed is accessible but response time >= 1000ms
-- **Red**: Feed is not accessible or returns an error
-
-Health checks run every `CHECK_INTERVAL` (default: 30 seconds).
-
-## Troubleshooting
-
-### Service won't connect to PostgreSQL
-
-1. Check PostgreSQL is running:
-   ```bash
-   docker compose ps postgres
-   ```
-
-2. Verify connection string:
-   ```bash
-   docker compose logs health-monitor | grep -i postgres
-   ```
-
-3. Test database connectivity:
-   ```bash
-   docker compose exec postgres psql -U postgres -d feeds -c "SELECT 1;"
-   ```
-
-### Health checks not running
-
-Check the `CHECK_INTERVAL` environment variable and service logs:
+### Build Docker
 
 ```bash
-docker compose logs health-monitor --tail=50
+docker build -t health-monitor .
 ```
 
-### Port already in use
+## Dockerfile Explicado
 
-Change the external port in `compose.yml` or `.env`:
+```dockerfile
+# Etapa builder: compila el binario
+FROM golang:1.23-alpine AS builder
+# CGO_ENABLED=0 crea binario estático sin dependencias C
+RUN CGO_ENABLED=0 go build -o health-monitor .
+
+# Etapa final: imagen mínima
+FROM alpine:latest
+# ca-certificates para HTTPS
+RUN apk add ca-certificates
+COPY --from=builder /app/health-monitor .
+```
+
+## Solución de Problemas
+
+### No conecta a PostgreSQL
 
 ```bash
-HEALTH_MONITOR_EXTERNAL_PORT=8081
+# Verificar que PostgreSQL está corriendo
+docker compose ps postgres
+
+# Ver logs
+docker compose logs postgres
+
+# Probar conexión
+docker compose exec postgres psql -U postgres -c "SELECT 1"
 ```
 
-## License
+### Feeds no se actualizan
 
-This is an educational project for learning Docker environment variables and dynamic compose configurations.
+```bash
+# Verificar intervalo de chequeo
+echo $CHECK_INTERVAL
+
+# Ver logs del servicio
+docker compose logs -f health-monitor
+
+# Forzar chequeo manual (próxima feature)
+curl -X POST http://localhost:8080/check
+```
+
+## Logs
+
+```bash
+# Ver logs en tiempo real
+docker compose logs -f health-monitor
+
+# Últimas 50 líneas
+docker compose logs --tail=50 health-monitor
+```
+
+## Dependencias Go
+
+```go
+require (
+    github.com/gorilla/mux v1.8.1      // Router HTTP
+    github.com/lib/pq v1.10.9          // Driver PostgreSQL
+)
+```
+
+## Próximas Mejoras
+
+- [ ] Endpoint para forzar chequeo inmediato
+- [ ] Historial de latencias (integración con InfluxDB)
+- [ ] Notificaciones cuando feed pasa a Red
+- [ ] Soporte para autenticación en feeds
+- [ ] Rate limiting de peticiones
+
+---
+
+**Puerto**: 8080  
+**Healthcheck**: `GET /health`  
+**Dependencias**: PostgreSQL
