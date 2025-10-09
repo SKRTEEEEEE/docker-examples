@@ -25,7 +25,6 @@ Sistema de procesamiento de feeds RSS con 3 microservicios y 4 bases de datos di
 - **PostgreSQL**: Estado de salud de feeds (Green/Yellow/Red)
 - **Redis**: Cola de mensajes y control de duplicados
 - **MongoDB**: Artículos clasificados y enriquecidos
-- **InfluxDB**: Métricas históricas de latencia
 
 ## 🚀 Inicio Rápido
 
@@ -303,14 +302,6 @@ AI_PUBLISHER_EXTERNAL_PORT=5001
 - [ ] Cosecha ejecutada: `curl -X POST http://localhost:3000/harvest`
 - [ ] Artículos procesados: `curl http://localhost:5000/articles`
 - [ ] Clasificación funciona: Verificar campo `category` en artículos
-
-## 🎯 Próximos Pasos
-
-1. Añade tu propia clave de OpenAI en `.env` para clasificación mejorada
-2. Crea reglas de publicación en MongoDB
-3. Personaliza categorías en `ai-publisher/app.py`
-4. Añade más feeds RSS de diferentes temáticas
-5. Implementa alertas cuando feeds fallen
 
 ---
 

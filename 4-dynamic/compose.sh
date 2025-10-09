@@ -27,8 +27,9 @@ show_menu() {
   echo "Selecciona una opción:"
   echo "  1) 🟢 Levantar contenedores (docker compose up -d)"
   echo "  2) 🔴 Detener y eliminar contenedores (docker compose down)"
-  echo "  3) 🛠️  Reconstruir y levantar (docker compose up --build -d)"
+  echo "  3) 🛠️ Reconstruir y levantar (docker compose up --build -d)"
   echo "  4) 🚪 Salir"
+  echo "  -> 🏗️ Levantar para desarrollo (docker compose watch)"
   echo ""
 }
 
