@@ -75,13 +75,13 @@ Crear una configuración de `compose` (con sus Dockerfile correspondientes) para
   
 * **Ejercicio Práctico:** Crear el `Dockerfile` de la aplicación backend hecha en Rust con un *Multistage Build* para separar las herramientas de compilación y reducir significativamente el tamaño de la imagen final.
 
-### **Tema:** Variables de Entorno y compose dinámico.
+### [**Tema 7:** Variables de Entorno y compose dinámico.](./4-dynamic/dynamic.md)
 * **Conceptos Clave:** 
   * Directivas **`environment`**, archivos **`.env`**
   * **`restart`** policies.
   * **`compose` dinámico:** diferentes enfoques de levantamiento (prod, dev, etc..) 
   
-* **✏️ Ejercicio Práctico:** MICROSERVICIOS Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
+* **✏️ Ejercicio Práctico:** MICRO-SERVICIOS Añadir una base de datos (ej. MySQL o Redis) al `compose.yml`, configurar su conexión con variables de entorno y usar **volúmenes nombrados** para asegurar que los datos persistan entre reinicios.
 
 ### **Tema:** CI/CD I.
 * **Conceptos Clave:** 

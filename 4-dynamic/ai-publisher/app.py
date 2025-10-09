@@ -2,6 +2,7 @@ import os
 import json
 import time
 import logging
+import threading
 from datetime import datetime
 from flask import Flask, jsonify, request
 import redis
@@ -12,6 +13,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+worker_started = False
 
 redis_config = {
     'host': os.getenv('REDIS_HOST', 'redis'),
@@ -206,11 +209,16 @@ def rules():
             rule['_id'] = str(rule['_id'])
         return jsonify(rules_list)
 
+def start_worker():
+    global worker_started
+    if not worker_started:
+        worker_started = True
+        worker_thread = threading.Thread(target=worker_loop, daemon=True)
+        worker_thread.start()
+        logger.info("Worker thread started")
+
+start_worker()
+
 if __name__ == '__main__':
-    import threading
-    
-    worker_thread = threading.Thread(target=worker_loop, daemon=True)
-    worker_thread.start()
-    
     port = int(os.getenv('PORT', '5000'))
     app.run(host='0.0.0.0', port=port)

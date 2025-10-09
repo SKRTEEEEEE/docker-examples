@@ -89,7 +89,7 @@ async function harvestFeed(url) {
 }
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'smart-harvester' });
+  res.json({ status: 'ok', service: 'smart-harvester', health: "good" });
 });
 
 app.get('/stats', async (req, res) => {

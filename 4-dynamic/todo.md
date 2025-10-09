@@ -1,0 +1,11 @@
+## Siguiente paso
+- [ ] Arreglar clasificador por categorías - py
+- [ ] Mejorar/nueva versión del compose.yml, para cuando se haga development(default) los servicios tengan `watch`, con un solo compose preferiblemente, de forma que cuando haga cualquier cambio se refleje en los servidores
+- [ ] Mejorar [*FIX*] workflow para - Antes de cerrar el trabajo:
+  - [ ] Mejorar README ppal i secundarios con información actualizada
+    - [ ] Evitar abusar de ejemplos, solo comandos necesarios para dev i prod
+    - [ ] Evitar ejemplos de variables de entorno, como mucho pequeña explicación de como obtenerla o que es
+    - [ ] Evitar sobrepasar las 300 lineas de md
+    - [ ] Traducir/mantener los README en Español de España
+  - [ ] Asegurar-se de que los Dockerfile tienen explicación de que hacen las lineas 'especiales o complicadas' que se salgan de lo común 
+    - [ ] No comentar el compose.yml a caso que no se pida expresamente
