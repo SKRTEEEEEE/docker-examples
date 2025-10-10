@@ -1,0 +1,61 @@
+### Smart Harvester API Tests
+### Base URL for local development
+@baseUrl = http://localhost:3000
+
+###############################################################################
+# 1. Health Check
+# Check if the service is running
+###############################################################################
+
+GET {{baseUrl}}/health HTTP/1.1
+
+###############################################################################
+# 2. Get Statistics
+# View queue length, cached articles count, and configuration
+###############################################################################
+
+GET {{baseUrl}}/stats HTTP/1.1
+
+###############################################################################
+# 3. Trigger Manual Harvest
+# Manually trigger harvesting of all eligible feeds
+# NOTE: This is asynchronous - check stats after a few seconds
+###############################################################################
+
+POST {{baseUrl}}/harvest HTTP/1.1
+
+###############################################################################
+# 4. Wait and Check Stats Again
+# After triggering harvest, wait ~5 seconds and check stats again
+# You should see queue_length increase
+###############################################################################
+
+GET {{baseUrl}}/stats HTTP/1.1
+
+###############################################################################
+# WORKFLOW EXAMPLE
+# Complete workflow to test the harvester:
+#
+# 1. First, add feeds in Health Monitor:
+#    POST http://localhost:8080/feeds/add
+#    {"url": "https://news.ycombinator.com/rss"}
+#
+# 2. Wait ~30 seconds for Health Monitor to check the feed
+#
+# 3. Check feed status:
+#    GET http://localhost:8080/feeds
+#    (Should show status as "green" or "yellow")
+#
+# 4. Check initial stats here:
+#    GET http://localhost:3000/stats
+#
+# 5. Trigger harvest:
+#    POST http://localhost:3000/harvest
+#
+# 6. Wait a few seconds, then check stats again:
+#    GET http://localhost:3000/stats
+#    (queue_length should have increased)
+#
+# 7. Check AI Publisher to see if articles were processed:
+#    GET http://localhost:5000/articles
+###############################################################################

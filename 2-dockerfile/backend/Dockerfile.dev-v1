@@ -1,0 +1,13 @@
+FROM node:20-alpine
+WORKDIR /app
+
+# Copiamos solo package*.json para usar cache cuando cambien deps
+COPY package*.json ./
+
+# Instalamos dependencias (se copiarán a la imagen y se usarán para inicializar el volumen anónimo)
+RUN npm ci
+
+EXPOSE 5000
+
+# Comando dev: usa tu script "dev" (nodemon/ts-node-dev/etc). Asegúrate que el servidor escuche en 0.0.0.0
+CMD ["npm", "run", "dev"]

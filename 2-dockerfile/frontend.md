@@ -1,4 +1,4 @@
-# Dockerfile para Aplicación Vite + React: Guía Detallada
+# Dockerfile para Aplicación Vite + React
 
 ## Análisis Línea por Línea
 

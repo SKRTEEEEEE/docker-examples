@@ -200,3 +200,34 @@ dist
 | **Mantiene imágenes más limpias**          | No se copian dependencias ni archivos innecesarios. |
 
 En resumen, `.dockerignore` funciona igual que `.gitignore`, pero aplicado al proceso de construcción de imágenes. Su correcto uso mejora el rendimiento y la seguridad del entorno Docker.
+
+## 📄 El archivo `compose`
+
+Cuando tu archivo **no se llama `docker-compose.yml`** o **`compose.yml`**, puedes especificarlo con la opción `-f` (o `--file`).
+
+Por ejemplo, si tu archivo se llama `compose.dev.yml`, lo ejecutas así:
+
+```bash
+docker compose -f compose.dev.yml up
+```
+
+O si además quieres **reconstruir imágenes**:
+
+```bash
+docker compose -f compose.dev.yml up --build
+```
+
+Y si quieres **detener y eliminar los contenedores** definidos en ese archivo:
+
+```bash
+docker compose -f compose.dev.yml down
+```
+
+> 💡 También puedes usar varios archivos al mismo tiempo (por ejemplo, uno base + uno de desarrollo):
+
+```bash
+docker compose -f docker-compose.yml -f compose.dev.yml up
+```
+
+En ese caso, Compose **fusiona** los archivos, y el segundo **sobrescribe** configuraciones del primero.
+

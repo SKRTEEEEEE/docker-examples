@@ -1,0 +1,35 @@
+### Health Check
+GET http://localhost:8080/health
+Accept: application/json
+
+###
+
+### Obtener todas las tareas
+GET http://localhost:8080/todos
+Accept: application/json
+
+###
+
+### Crear nueva tarea
+POST http://localhost:8080/todos
+Content-Type: application/json
+
+{
+  "title": "Leer documentación de Docker",
+  "completed": false,
+  "created_at": "2025-10-07T19:15:00Z"
+}
+
+###
+
+### Actualizar tarea (toggle completed)
+PUT http://localhost:8080/todos/{{id}}
+Accept: application/json
+
+###
+
+### Eliminar tarea
+DELETE http://localhost:8080/todos/{{id}}
+Accept: application/json
+
+###

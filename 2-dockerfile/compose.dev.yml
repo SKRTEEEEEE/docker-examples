@@ -1,0 +1,107 @@
+networks:
+  frontend-net:
+    driver: bridge
+  backend-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local
+
+services:
+  ts-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      # Bind mount para desarrollo con hot-reload
+      - ./frontend:/app
+      # Volumen anónimo para evitar sobrescribir node_modules del contenedor
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost/api
+    depends_on:
+      - ts-backend
+    networks:
+      - frontend-net
+    # Watch para recarga automática (Docker Compose 2.22+)
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: rebuild
+          path: ./frontend/package.json
+
+  ts-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes:
+      # Bind mount para desarrollo con hot-reload
+      - ./backend:/app
+      # Volumen anónimo para node_modules
+      - /app/node_modules
+      # Volumen anónimo para dist/ compilado
+      - /app/dist
+    environment:
+      - MONGO_URI=mongodb://mongodb-container:27017/notesdb
+      - PORT=5000
+      - NODE_ENV=development
+    depends_on:
+      mongodb-container:
+        condition: service_started
+    networks:
+      - backend-net
+      - frontend-net
+    # Watch para recarga automática
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+        - action: rebuild
+          path: ./backend/package.json
+
+  mongodb-container:
+    image: mongo:7
+    container_name: mongo-dev
+    ports:
+      - "27017:27017"
+    volumes:
+      # Named volume para persistencia de datos
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=notesdb
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      # Bind mount de configuración (read-only)
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - ts-frontend
+      - ts-backend
+    networks:
+      - frontend-net
+      - backend-net
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

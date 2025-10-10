@@ -1,0 +1,83 @@
+### Health Monitor API Tests
+### Base URL for local development
+@baseUrl = http://localhost:8080
+
+###############################################################################
+# 1. Health Check
+# Check if the service is running
+###############################################################################
+
+GET {{baseUrl}}/health HTTP/1.1
+
+###############################################################################
+# 2. Add RSS Feed - Hacker News
+# Add a new feed to monitor
+###############################################################################
+
+POST {{baseUrl}}/feeds/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "https://news.ycombinator.com/rss"
+}
+
+###############################################################################
+# 3. Add RSS Feed - TechCrunch
+# Add another feed
+###############################################################################
+
+POST {{baseUrl}}/feeds/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "https://techcrunch.com/feed/"
+}
+
+###############################################################################
+# 4. Add RSS Feed - Reddit Programming
+###############################################################################
+
+POST {{baseUrl}}/feeds/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "https://www.reddit.com/r/programming/.rss"
+}
+
+###############################################################################
+# 5. List All Feeds
+# Get all monitored feeds with their status
+###############################################################################
+
+GET {{baseUrl}}/feeds HTTP/1.1
+
+###############################################################################
+# 6. Get Metrics
+# Get aggregated metrics grouped by status (green/yellow/red)
+###############################################################################
+
+GET {{baseUrl}}/metrics HTTP/1.1
+
+###############################################################################
+# 7. Add Invalid Feed (Error Test)
+# Test error handling with an invalid URL
+###############################################################################
+
+POST {{baseUrl}}/feeds/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "not-a-valid-url"
+}
+
+###############################################################################
+# 8. Add Duplicate Feed (Error Test)
+# Try adding the same feed twice
+###############################################################################
+
+POST {{baseUrl}}/feeds/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "url": "https://news.ycombinator.com/rss"
+}
